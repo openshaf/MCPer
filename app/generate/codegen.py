@@ -27,6 +27,7 @@ def _render_tool(env: Environment, tool: ToolSpec) -> str:
     tmpl = env.get_template("tool.py.j2")
     return tmpl.render(
         name=tool.name,
+        prefix=tool.prefix,
         method=tool.method,
         path=tool.path,
         description=tool.description,
@@ -43,17 +44,17 @@ def _project_slug(title: str) -> str:
 
 
 def generate(
-    api_meta: dict,
+    apis: list[dict],
     tools: list[ToolSpec],
     output_root: Path,
-    source: str = "",
+    project_name: str,
 ) -> Path:
     """
     Render server.py + requirements.txt into output_root/<project_name>/.
     Returns the path to the generated server.py.
     """
-    project_name = _project_slug(api_meta["title"])
-    out_dir = output_root / project_name
+    slug = _project_slug(project_name)
+    out_dir = output_root / slug
     out_dir.mkdir(parents=True, exist_ok=True)
 
     env = _jinja_env()
@@ -61,13 +62,9 @@ def generate(
     rendered_tools = [_render_tool(env, t) for t in tools]
 
     server_code = env.get_template("server.py.j2").render(
-        api_title=api_meta["title"],
-        base_url=api_meta["base_url"],
-        auth_type=api_meta["auth_type"],
-        env_var_name=api_meta["env_var_name"],
-        api_key_header=api_meta["api_key_header"],
+        project_name=project_name,
+        apis=apis,
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-        source=source,
         tools=rendered_tools,
     )
 

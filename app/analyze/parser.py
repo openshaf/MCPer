@@ -50,6 +50,7 @@ class ToolSpec:
     has_body: bool = False           # True when a requestBody exists
 
     # Filled in from api_meta so each tool is self-contained
+    prefix: str = ""
     base_url: str = ""
     auth_type: str = "none"
     env_var_name: str = ""
@@ -120,9 +121,14 @@ def _resolve_ref(spec: dict, obj: Any) -> Any:
     return obj
 
 
-def _detect_auth(spec: dict, title: str) -> tuple[str, str, str]:
+def _slugify(text: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9]", "_", text.lower()).strip("_")
+    return re.sub(r"_+", "_", slug) or "api"
+
+
+def _detect_auth(spec: dict, prefix: str) -> tuple[str, str, str]:
     """Returns (auth_type, env_var_name, api_key_header)."""
-    prefix = re.sub(r"[^A-Z0-9]", "_", title.upper()).strip("_") or "API"
+    prefix = prefix.upper()
     schemes = spec.get("components", {}).get("securitySchemes", {})
     for _, scheme in schemes.items():
         stype = scheme.get("type", "").lower()
@@ -157,6 +163,7 @@ def parse_spec(spec: dict, source_url: str = "") -> tuple[dict, list[ToolSpec]]:
     """
     info  = spec.get("info", {})
     title = info.get("title", "Generated API")
+    prefix = _slugify(title)
 
     servers  = spec.get("servers", [])
     base_url = servers[0].get("url", "").rstrip("/") if servers else ""
@@ -167,10 +174,11 @@ def parse_spec(spec: dict, source_url: str = "") -> tuple[dict, list[ToolSpec]]:
         elif not base_url:
             base_url = urljoin(source_url, "/").rstrip("/")
 
-    auth_type, env_var_name, api_key_header = _detect_auth(spec, title)
+    auth_type, env_var_name, api_key_header = _detect_auth(spec, prefix)
 
     api_meta = {
         "title":          title,
+        "prefix":         prefix,
         "version":        info.get("version", "1.0.0"),
         "base_url":       base_url,
         "auth_type":      auth_type,
@@ -194,7 +202,9 @@ def parse_spec(spec: dict, source_url: str = "") -> tuple[dict, list[ToolSpec]]:
 
             # --- Function name ---
             raw_id = operation.get("operationId") or _gen_op_id(method, path)
-            func   = _snake(raw_id)
+            base_func = _snake(raw_id)
+            func = f"{prefix}_{base_func}"
+            
             if func in seen:
                 seen[func] += 1
                 func = f"{func}_{seen[func]}"
@@ -245,6 +255,7 @@ def parse_spec(spec: dict, source_url: str = "") -> tuple[dict, list[ToolSpec]]:
                     description=desc,
                     params=params,
                     has_body=has_body,
+                    prefix=prefix,
                     base_url=base_url,
                     auth_type=auth_type,
                     env_var_name=env_var_name,

@@ -13,7 +13,7 @@ def {{ name }}(
 {% endif %}
 ) -> str:
     """{{ description }}"""
-    _url = BASE_URL + "{{ path }}"
+    _url = {{ prefix | upper }}_BASE_URL + "{{ path }}"
 {% if path_params %}
     _url = _url.format(
 {% for p in path_params %}
@@ -29,11 +29,11 @@ def {{ name }}(
 {% if has_body %}
     _json = json.loads(body) if body else None
     _resp = httpx.{{ method | lower }}(
-        _url, headers=_headers(), params=_params, json=_json, timeout=30, follow_redirects=True
+        _url, headers=_{{ prefix | lower }}_headers(), params=_params, json=_json, timeout=30, follow_redirects=True
     )
 {% else %}
     _resp = httpx.{{ method | lower }}(
-        _url, headers=_headers(), params=_params, timeout=30, follow_redirects=True
+        _url, headers=_{{ prefix | lower }}_headers(), params=_params, timeout=30, follow_redirects=True
     )
 {% endif %}
     _resp.raise_for_status()

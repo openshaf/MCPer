@@ -12,37 +12,37 @@ from rich.syntax import Syntax
 console = Console()
 
 
-def print_instructions(server_path: Path, api_meta: dict) -> None:
+def print_instructions(server_path: Path, apis: list[dict], project_name: str) -> None:
     """Pretty-print everything the user needs to run their new MCP server."""
-    rel = server_path.relative_to(server_path.parent.parent)
-
     console.print()
     console.rule("[bold green]✅  Generation complete")
     console.print()
 
     # Auth env-var hint
-    auth_type    = api_meta.get("auth_type", "none")
-    env_var_name = api_meta.get("env_var_name", "")
-    api_key_hdr  = api_meta.get("api_key_header", "")
+    for api_meta in apis:
+        auth_type    = api_meta.get("auth_type", "none")
+        env_var_name = api_meta.get("env_var_name", "")
+        api_key_hdr  = api_meta.get("api_key_header", "")
+        title        = api_meta.get("title", "API")
 
-    if auth_type == "bearer":
-        console.print(
-            f"[yellow]🔑  Auth required[/] — set env var before running:\n"
-            f"   [bold cyan]set {env_var_name}=<your-token>[/]  (Windows)\n"
-            f"   [bold cyan]export {env_var_name}=<your-token>[/]  (Linux/macOS)\n"
-        )
-    elif auth_type == "apiKey":
-        console.print(
-            f"[yellow]🔑  Auth required[/] — API key sent as header [bold]{api_key_hdr}[/]\n"
-            f"   [bold cyan]set {env_var_name}=<your-key>[/]  (Windows)\n"
-            f"   [bold cyan]export {env_var_name}=<your-key>[/]  (Linux/macOS)\n"
-        )
-    elif auth_type == "basic":
-        console.print(
-            f"[yellow]🔑  Basic auth required[/]\n"
-            f"   [bold cyan]set {env_var_name}_USERNAME=...[/]\n"
-            f"   [bold cyan]set {env_var_name}_PASSWORD=...[/]\n"
-        )
+        if auth_type == "bearer":
+            console.print(
+                f"[yellow]🔑  {title} Auth required[/] — set env var before running:\n"
+                f"   [bold cyan]set {env_var_name}=<your-token>[/]  (Windows)\n"
+                f"   [bold cyan]export {env_var_name}=<your-token>[/]  (Linux/macOS)\n"
+            )
+        elif auth_type == "apiKey":
+            console.print(
+                f"[yellow]🔑  {title} Auth required[/] — API key sent as header [bold]{api_key_hdr}[/]\n"
+                f"   [bold cyan]set {env_var_name}=<your-key>[/]  (Windows)\n"
+                f"   [bold cyan]export {env_var_name}=<your-key>[/]  (Linux/macOS)\n"
+            )
+        elif auth_type == "basic":
+            console.print(
+                f"[yellow]🔑  {title} Basic auth required[/]\n"
+                f"   [bold cyan]set {env_var_name}_USERNAME=...[/]\n"
+                f"   [bold cyan]set {env_var_name}_PASSWORD=...[/]\n"
+            )
 
     # Run commands
     run_script = (
@@ -62,7 +62,7 @@ def print_instructions(server_path: Path, api_meta: dict) -> None:
     config = (
         '{\n'
         '  "mcpServers": {\n'
-        f'    "{api_meta["title"]}": {{\n'
+        f'    "{project_name}": {{\n'
         '      "command": "python",\n'
         f'      "args": ["{server_path.as_posix()}"]\n'
         '    }\n'

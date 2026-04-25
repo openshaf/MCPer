@@ -47,11 +47,20 @@ During live testing against the **Swagger Petstore** and **XKCD** APIs, the foll
 
 ---
 
+## 🌐 Multi-API Aggregation Feature
+
+Upgraded the architecture to allow ingesting multiple APIs simultaneously into a single unified MCP server:
+- **CLI Updates**: Refactored `main.py` arguments (`--api`, `--url`, `--file`, `--raw`) to support `action="append"`. Added an optional `--name` flag to specify the output directory, falling back to a 10-character random string if omitted.
+- **Conflict Resolution**: Implemented automatic prefixing for all tools and environment variables (`[api-prefix]_[endpoint_name]`) to prevent naming collisions when combining different APIs (e.g., `petstore_add_pet`, `xkcd_get_info_0_json`).
+- **Template Restructuring**: Rewrote `server.py.j2` and `tool.py.j2` to iterate over all loaded APIs, generating isolated configuration blocks for each API (`BASE_URL` and specific auth helpers) at the top of the file, allowing each tool to reference its respective API's config.
+
+---
+
 ## 🚀 Final Usage
 
-The system now reliably ingests APIs and generates code that can be immediately mounted to any agent via:
+The system now reliably ingests APIs (single or multiple) and generates code that can be immediately mounted to any agent via:
 ```bash
-uv run main.py --api <API_BASE_URL>
+uv run main.py --api <API_BASE_URL_1> --api <API_BASE_URL_2> --name <CUSTOM_NAME>
 ```
 Followed by binding it to a client:
 ```bash
