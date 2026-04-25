@@ -1,0 +1,43 @@
+@mcp.tool()
+def {{ name }}(
+{% set req = params | selectattr("required") | list %}
+{% set opt = params | rejectattr("required") | list %}
+{% for p in req %}
+    {{ p.py_name }}: {{ p.py_type }},
+{% endfor %}
+{% for p in opt %}
+    {{ p.py_name }}: {{ p.py_type }} | None = None,
+{% endfor %}
+{% if has_body %}
+    body: str | None = None,
+{% endif %}
+) -> str:
+    """{{ description }}"""
+    _url = BASE_URL + "{{ path }}"
+{% if path_params %}
+    _url = _url.format(
+{% for p in path_params %}
+        **{"{{ p.name }}": {{ p.py_name }}},
+{% endfor %}
+    )
+{% endif %}
+    _params: dict = {}
+{% for p in query_params %}
+    if {{ p.py_name }} is not None:
+        _params["{{ p.name }}"] = {{ p.py_name }}
+{% endfor %}
+{% if has_body %}
+    _json = json.loads(body) if body else None
+    _resp = httpx.{{ method | lower }}(
+        _url, headers=_headers(), params=_params, json=_json, timeout=30, follow_redirects=True
+    )
+{% else %}
+    _resp = httpx.{{ method | lower }}(
+        _url, headers=_headers(), params=_params, timeout=30, follow_redirects=True
+    )
+{% endif %}
+    _resp.raise_for_status()
+    try:
+        return json.dumps(_resp.json(), indent=2)
+    except Exception:
+        return _resp.text
