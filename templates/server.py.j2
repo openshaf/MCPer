@@ -6,12 +6,14 @@ from __future__ import annotations
 import json
 import os
 
+from pathlib import Path
 from dotenv import load_dotenv
 import httpx
 from fastmcp import FastMCP
 
-# Load environment variables from .env (API keys, base URLs)
-load_dotenv()
+# Load environment variables from .env located in the same directory as this script
+env_path = Path(__file__).parent / ".env"
+load_dotenv(env_path)
 
 mcp = FastMCP("{{ project_name }}")
 
