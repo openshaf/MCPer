@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ApiEntryCard from "@/components/ApiEntryCard";
 import BuildProgress from "@/components/BuildProgress";
 import ResultPanel from "@/components/ResultPanel";
 import FeatureCard from "@/components/FeatureCard";
-import { ApiEntry, BuildStep, BuildResult, InputMode } from "@/types";
+import { ApiEntry, BuildStep, BuildResult, InputMode, User } from "@/types";
 
 /* ── ID generation ── */
 let _counter = 0;
@@ -26,7 +26,22 @@ export default function HomePage() {
   const [buildStep, setBuildStep] = useState<BuildStep>("idle");
   const [result, setResult]       = useState<BuildResult | null>(null);
   const [globalErr, setGlobalErr] = useState<string | null>(null);
+  const [user, setUser]           = useState<User | null>(null);
   const isBuilding = ["loading", "analyzing", "generating"].includes(buildStep);
+
+  // Load auth state from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("mcper_user");
+    if (stored) {
+      try { setUser(JSON.parse(stored)); } catch {}
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("mcper_token");
+    localStorage.removeItem("mcper_user");
+    setUser(null);
+  };
 
   /* ── Entry management ── */
   const addEntry = () => {
@@ -71,11 +86,7 @@ export default function HomePage() {
       const res = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: entry.mode,
-          value: entry.value,
-          api_key: entry.apiKey || undefined,
-        }),
+        body: JSON.stringify({ mode: entry.mode, value: entry.value }),
       });
 
       if (!res.ok) {
@@ -84,18 +95,19 @@ export default function HomePage() {
       }
 
       const data = await res.json();
-      updateEntry(id, { 
-        status: "success", 
+      updateEntry(id, {
+        status: "success",
         isVerifying: false,
         apiTitle: data.apiTitle,
-        endpointCount: data.endpointCount
+        endpointCount: data.endpointCount,
+        authType: data.authType,
       });
       return true;
     } catch (err) {
-      updateEntry(id, { 
-        status: "error", 
+      updateEntry(id, {
+        status: "error",
         isVerifying: false,
-        error: err instanceof Error ? err.message : "Unknown error"
+        error: err instanceof Error ? err.message : "Unknown error",
       });
       return false;
     }
@@ -107,7 +119,6 @@ export default function HomePage() {
     setResult(null);
     if (!validate()) return;
 
-    // Verify any idle entries automatically
     const unverified = entries.filter(e => e.status === "idle");
     if (unverified.length > 0) {
       setBuildStep("loading");
@@ -119,31 +130,27 @@ export default function HomePage() {
       }
     }
 
-    // Check if any entries are in error state
-    // We get the fresh state because handleVerify updates are async and might not be fully reflected in the local closure scope,
-    // actually Promise.all with handleVerify will update the React state but the local 'entries' closure is stale.
-    // However, if results.some is false, we already aborted above.
-    // Let's just double check if the current closure had errors before we even verified.
     if (entries.some(e => e.status === "error")) {
-        setGlobalErr("Some APIs have errors. Please fix them before building.");
-        return;
+      setGlobalErr("Some APIs have errors. Please fix them before building.");
+      return;
     }
 
     setBuildStep("loading");
-    // We need to mark them as loading for the build step, but they are already success.
-    // Let's just set the global buildStep to loading.
 
     try {
-      const payload = entries.map((e) => ({
-        mode: e.mode,
+      const token = localStorage.getItem("mcper_token");
+      const payload = entries.map(e => ({
+        mode:  e.mode,
         value: e.value,
-        name: e.name,
-        api_key: e.apiKey || undefined,
+        name:  e.name,
       }));
 
       const res = await fetch("/api/build", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ apis: payload }),
       });
 
@@ -158,7 +165,7 @@ export default function HomePage() {
       }
 
       const data: BuildResult = await res.json();
-      setEntries((p) => p.map((e) => ({ ...e, status: "success" as const })));
+      setEntries(p => p.map(e => ({ ...e, status: "success" as const })));
       setBuildStep("done");
       setResult(data);
     } catch (err) {
@@ -194,21 +201,42 @@ export default function HomePage() {
             <span style={{ fontWeight: 800, fontSize: 16, color: "#fff", letterSpacing: "-.02em" }}>MCPer</span>
             <span className="badge badge-indigo" style={{ fontSize: 9 }}>beta</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            {user ? (
+              <>
+                <a href="/dashboard" id="dashboard-link"
+                  style={{ color: "rgba(255,255,255,.5)", fontSize: 13, textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: 5, transition: "color .2s" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "#a5b4fc")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.5)")}
+                >
+                  📊 Dashboard
+                </a>
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,.35)" }}>👤 {user.username || user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,.1)", color: "rgba(255,255,255,.35)", fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit", transition: "all .2s" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,.4)"; (e.currentTarget as HTMLButtonElement).style.color = "#f87171"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,.1)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.35)"; }}
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <a href="/auth" id="signin-link"
+                style={{ color: "rgba(255,255,255,.5)", fontSize: 13, textDecoration: "none", fontWeight: 600, transition: "color .2s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#a5b4fc")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.5)")}
+              >
+                Sign in →
+              </a>
+            )}
             <a href="https://github.com/openshaf/MCPer" target="_blank" rel="noopener noreferrer" id="github-link"
-              style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,.38)", fontSize: 13, textDecoration: "none", transition: "color .2s" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,.28)", fontSize: 13, textDecoration: "none", transition: "color .2s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,.75)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.38)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.28)")}
             >
               <GithubIcon />
               GitHub
-            </a>
-            <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" id="mcp-docs-link"
-              style={{ color: "rgba(255,255,255,.38)", fontSize: 13, textDecoration: "none", transition: "color .2s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,.75)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.38)")}
-            >
-              MCP Docs
             </a>
           </div>
         </nav>

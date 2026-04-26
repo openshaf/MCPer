@@ -8,11 +8,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ detail: "Invalid JSON body." }, { status: 400 });
   }
 
+  const auth = req.headers.get("Authorization") || "";
+
   try {
     const response = await fetch("http://127.0.0.1:8000/build", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(auth ? { Authorization: auth } : {}),
       },
       body: JSON.stringify(body),
     });

@@ -65,7 +65,77 @@ To provide a seamless user experience, a Next.js web interface was integrated to
 
 ---
 
-## 🚀 Final Usage
+## 🔐 User Authentication & Dashboard
+
+Added a complete user authentication system and build-history dashboard:
+
+- **Supabase Auth**: Email/password registration and login via `supabase-py`. Access tokens returned by Supabase are used directly as Bearer tokens throughout the stack.
+- **FastAPI auth endpoints**: `POST /auth/register`, `POST /auth/login`, `GET /auth/me` validate and return Supabase sessions.
+- **Auth-optional `/build`**: Anonymous users can still generate MCP servers (for demo/judge access). Authenticated users get their builds saved to Supabase automatically.
+- **`GET /builds`**: Returns authenticated user's full build history from the `mcper_builds` table.
+- **Frontend**: Login/register page at `/auth`, dashboard at `/dashboard` (protected by `AuthGuard`). Auth token stored in `localStorage`. Nav shows Sign In / Dashboard / username / Sign Out depending on state.
+- **`ServerCodeViewer` component**: Modal for displaying full generated Python code or `.env` file content with copy-all and download buttons.
+
+### Supabase Table Schema (run in Supabase SQL editor)
+
+```sql
+-- mcper_profiles: synced from auth.users
+CREATE TABLE IF NOT EXISTS public.mcper_profiles (
+    id         UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    username   TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION public.mcper_handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+    INSERT INTO public.mcper_profiles (id, username)
+    VALUES (new.id, new.raw_user_meta_data->>'username');
+    RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER mcper_on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE PROCEDURE public.mcper_handle_new_user();
+
+-- mcper_builds: build history
+CREATE TABLE IF NOT EXISTS public.mcper_builds (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    project_name    TEXT NOT NULL,
+    api_names       TEXT NOT NULL DEFAULT '[]',
+    total_endpoints INTEGER NOT NULL DEFAULT 0,
+    config_snippet  TEXT NOT NULL,
+    run_command     TEXT NOT NULL,
+    server_code     TEXT NOT NULL,
+    env_template    TEXT NOT NULL DEFAULT '',
+    server_slug     TEXT NOT NULL,
+    created_at      TIMESTAMPTZ DEFAULT now()
+);
+
+-- RLS
+ALTER TABLE public.mcper_builds ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can read own builds"   ON public.mcper_builds FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own builds" ON public.mcper_builds FOR INSERT WITH CHECK (auth.uid() = user_id);
+```
+
+> **Prisma coexistence**: All MCPer tables are prefixed `mcper_` to avoid conflicts with the teammate's Prisma-managed tables in the same Supabase project. MCPer uses `supabase-py` directly (no Prisma).
+
+---
+
+## 🔑 .env-Based API Key Management
+
+Removed API key collection from MCPer entirely. Instead:
+
+- **No API key input field** in the frontend — the "🔑 Add API key" section was deleted from `ApiEntryCard.tsx`
+- **Auth detection hint**: After spec verification, if authentication is required, a callout appears telling the user to fill in their key in the generated `.env` file
+- **Generated `.env`**: `templates/env.j2` generates a `.env` file alongside `server.py` with blank placeholders for each required env var
+- **Generated `.env.example`**: `templates/env_example.j2` generates a commitable example file with placeholder values and comments
+- **`server.py.j2` updated**: Added `from dotenv import load_dotenv` + `load_dotenv()` at startup. All `os.environ.get()` calls have no hardcoded fallback key values
+- **`codegen.py` updated**: `generate()` now returns a dict (`server_path`, `server_code`, `env_template`, `server_slug`) instead of just a path, enabling inline return in the API response
+- **`requirements.txt`** in generated servers now includes `python-dotenv>=1.0.0`
+
 
 The system now reliably ingests APIs (single or multiple) and generates code that can be immediately mounted to any agent via:
 ```bash

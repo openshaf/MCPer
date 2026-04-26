@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import { ApiEntry } from "@/types";
 
 interface Props {
@@ -14,8 +14,6 @@ interface Props {
 
 export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerify, canRemove }: Props) {
   const uid = useId();
-  const [showKey, setShowKey] = useState(false);
-  const [keyExpanded, setKeyExpanded] = useState(!!entry.apiKey);
 
   const borderColor =
     entry.status === "success" ? "rgba(16,185,129,0.35)" :
@@ -59,6 +57,9 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
           />
           {entry.status === "success" && entry.apiTitle && (
             <span className="badge badge-emerald" style={{ fontSize: 10 }}>✓ {entry.apiTitle}</span>
+          )}
+          {entry.status === "success" && entry.authType && entry.authType !== "none" && (
+            <span className="badge badge-amber" style={{ fontSize: 10 }}>🔑 {entry.authType}</span>
           )}
         </div>
         {canRemove && (
@@ -115,55 +116,18 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
             {entry.isVerifying ? "..." : entry.status === "success" ? "Verified" : "Verify"}
           </button>
         </div>
-        {/* ── API Key (optional) ── */}
-        <div style={{ marginTop: 8 }}>
-          {!keyExpanded ? (
-            <button
-              id={`${uid}-add-key`}
-              onClick={() => setKeyExpanded(true)}
-              style={{
-                background: "transparent", border: "none", cursor: "pointer",
-                color: "rgba(255,255,255,.28)", fontSize: 12, fontFamily: "inherit",
-                display: "flex", alignItems: "center", gap: 5, padding: 0,
-                transition: "color .2s",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(165,180,252,.8)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.28)")}
-            >
-              <span style={{ fontSize: 14 }}>🔑</span> Add API key (optional)
-            </button>
-          ) : (
-            <div style={{ position: "relative", marginTop: 4 }}>
-              <input
-                id={`${uid}-apikey`}
-                type={showKey ? "text" : "password"}
-                value={entry.apiKey ?? ""}
-                onChange={(e) => onUpdate(entry.id, { apiKey: e.target.value })}
-                placeholder="Paste your API key…"
-                autoComplete="off"
-                className="input-glow font-mono-custom"
-                style={{
-                  width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10,
-                  background: "rgba(99,102,241,.07)", border: "1px solid rgba(99,102,241,.25)",
-                  color: "rgba(255,255,255,.75)", fontSize: 13, fontFamily: "monospace",
-                  transition: "border-color .2s",
-                }}
-              />
-              {/* toggle visibility */}
-              <button
-                onClick={() => setShowKey(v => !v)}
-                style={{
-                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                  background: "transparent", border: "none", cursor: "pointer",
-                  color: "rgba(255,255,255,.3)", fontSize: 14, lineHeight: 1, padding: 4,
-                }}
-                aria-label={showKey ? "Hide API key" : "Show API key"}
-              >
-                {showKey ? "🙈" : "👁"}
-              </button>
-            </div>
-          )}
-        </div>
+
+        {/* Auth hint — shown after successful verification if auth is required */}
+        {entry.status === "success" && entry.authType && entry.authType !== "none" && (
+          <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(245,158,11,.07)", border: "1px solid rgba(245,158,11,.2)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 13, color: "#fbbf24", flexShrink: 0 }}>🔑</span>
+            <p style={{ margin: 0, fontSize: 12, color: "rgba(253,211,77,.7)", lineHeight: 1.5 }}>
+              <strong style={{ color: "rgba(253,211,77,.9)" }}>{entry.authType} auth detected.</strong> A{" "}
+              <code style={{ fontFamily: "monospace", background: "rgba(0,0,0,.3)", padding: "1px 4px", borderRadius: 4 }}>.env</code>{" "}
+              file will be generated alongside your server — add your key there.
+            </p>
+          </div>
+        )}
 
         {entry.error && (
           <p style={{ marginTop: 8, fontSize: 12, color: "#f87171", display: "flex", gap: 5, alignItems: "flex-start" }}>

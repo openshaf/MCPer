@@ -127,10 +127,21 @@ def _slugify(text: str) -> str:
 
 
 def _detect_auth(spec: dict, prefix: str) -> tuple[str, str, str]:
-    """Returns (auth_type, env_var_name, api_key_header)."""
+    """
+    Detect the primary auth scheme from an OpenAPI 3.x spec.
+
+    Three-tier search:
+      1. Iterate components.securitySchemes (canonical location)
+      2. Resolve which schemes are referenced by the global security array
+      3. Scan every operation body for a per-operation security field
+
+    Returns (auth_type, env_var_name, api_key_header).
+    auth_type is one of: "bearer", "apiKey", "basic", "none"
+    """
     prefix = prefix.upper()
-    schemes = spec.get("components", {}).get("securitySchemes", {})
-    for _, scheme in schemes.items():
+    schemes: dict = spec.get("components", {}).get("securitySchemes", {})
+
+    def _scheme_to_auth(scheme: dict) -> tuple[str, str, str] | None:
         stype = scheme.get("type", "").lower()
         if stype == "http":
             http_scheme = scheme.get("scheme", "").lower()
@@ -141,8 +152,47 @@ def _detect_auth(spec: dict, prefix: str) -> tuple[str, str, str]:
         elif stype == "apikey":
             header = scheme.get("name", "X-API-Key")
             return "apiKey", f"{prefix}_API_KEY", header
-        elif stype == "oauth2":
+        elif stype in ("oauth2", "openidconnect"):
             return "bearer", f"{prefix}_API_KEY", ""
+        return None
+
+    # ── Tier 1: Walk all defined schemes ───────────────────────────────────
+    for _, scheme in schemes.items():
+        result = _scheme_to_auth(scheme)
+        if result:
+            return result
+
+    # ── Tier 2: Resolve global spec-level security requirements ────────────
+    global_security: list = spec.get("security", [])
+    for sec_req in global_security:
+        for scheme_name in sec_req.keys():
+            if scheme_name in schemes:
+                result = _scheme_to_auth(schemes[scheme_name])
+                if result:
+                    return result
+    # Global security declared but scheme lookup failed → assume bearer
+    if global_security:
+        return "bearer", f"{prefix}_API_KEY", ""
+
+    # ── Tier 3: Scan per-operation security fields ─────────────────────────
+    for path_item in spec.get("paths", {}).values():
+        if not isinstance(path_item, dict):
+            continue
+        for method in ("get", "post", "put", "patch", "delete", "head", "options"):
+            operation = path_item.get(method)
+            if not isinstance(operation, dict):
+                continue
+            op_security = operation.get("security", [])
+            for sec_req in op_security:
+                for scheme_name in sec_req.keys():
+                    if scheme_name in schemes:
+                        result = _scheme_to_auth(schemes[scheme_name])
+                        if result:
+                            return result
+            # Security declared at operation level but no scheme found → bearer
+            if op_security:  # any non-empty security block means auth is needed
+                return "bearer", f"{prefix}_API_KEY", ""
+
     return "none", prefix, ""
 
 
@@ -217,7 +267,7 @@ def parse_spec(spec: dict, source_url: str = "") -> tuple[dict, list[ToolSpec]]:
                 or operation.get("summary")
                 or f"{method.upper()} {path}"
             )
-            desc = desc.replace('"""', "'''").replace("\n", " ").strip()
+            desc = desc.replace('"""', "'''").replace("\n", " ").replace("\\", "\\\\").strip()
 
             # --- Parameters ---
             all_param_defs = list(path_params) + list(

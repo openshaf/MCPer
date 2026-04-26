@@ -86,27 +86,12 @@ def load_from_file(path: str) -> dict:
     return spec
 
 
-def load_from_url(url: str, api_key: str | None = None) -> dict:
-    headers = {}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
-    
-    resp = None
+def load_from_url(url: str) -> dict:
     try:
-        resp = httpx.get(url, headers=headers, timeout=15, follow_redirects=True)
+        resp = httpx.get(url, timeout=15, follow_redirects=True)
         resp.raise_for_status()
     except httpx.HTTPError as exc:
-        # If it failed and we sent an API key, try again without it.
-        # GitHub raw content returns 404 if a Bearer token is sent but isn't valid for the private repo,
-        # or if it's a public repo and the token has SSO restrictions.
-        if api_key:
-            try:
-                resp = httpx.get(url, timeout=15, follow_redirects=True)
-                resp.raise_for_status()
-            except httpx.HTTPError as exc2:
-                raise ValueError(f"Failed to fetch {url!r}: {exc2}") from exc2
-        else:
-            raise ValueError(f"Failed to fetch {url!r}: {exc}") from exc
+        raise ValueError(f"Failed to fetch {url!r}: {exc}") from exc
 
     spec = _parse_content(resp.text, url)
     _validate(spec)
@@ -119,7 +104,7 @@ def load_from_raw(raw: str) -> dict:
     return spec
 
 
-def load_from_api(base_url: str, api_key: str | None = None) -> tuple[dict, str]:
+def load_from_api(base_url: str) -> tuple[dict, str]:
     """
     Auto-discover an OpenAPI spec by probing common paths under *base_url*.
 
@@ -128,35 +113,19 @@ def load_from_api(base_url: str, api_key: str | None = None) -> tuple[dict, str]
     """
     base_url = base_url.rstrip("/")
     tried: list[str] = []
-    headers = {}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
 
     with httpx.Client(timeout=10, follow_redirects=True) as client:
         for path in DISCOVERY_PATHS:
             url = base_url + path
             tried.append(url)
-            
-            resp = None
+
             try:
-                if headers:
-                    resp = client.get(url, headers=headers)
-                    resp.raise_for_status()
-                else:
-                    resp = client.get(url)
-                    resp.raise_for_status()
+                resp = client.get(url)
+                resp.raise_for_status()
             except (httpx.ConnectError, httpx.TimeoutException, httpx.RequestError):
                 continue
             except httpx.HTTPStatusError:
-                # If we sent headers, try again without them
-                if headers:
-                    try:
-                        resp = client.get(url)
-                        resp.raise_for_status()
-                    except Exception:
-                        continue
-                else:
-                    continue
+                continue
 
             if resp.status_code != 200:
                 continue
@@ -193,21 +162,19 @@ def load_spec(
     url: str | None = None,
     file: str | None = None,
     raw: str | None = None,
-    api_key: str | None = None,
 ) -> tuple[dict, str]:
     """
     Load and validate an OpenAPI 3.x spec from any source.
     Returns (spec_dict, source_description).
     """
-    # Unified smart handling for remote links (api or url)
     link = api or url
     if link:
         # Strip query params to check the extension properly
         lower_link = link.split("?")[0].lower()
         if lower_link.endswith((".json", ".yaml", ".yml")):
-            return load_from_url(link, api_key=api_key), link
+            return load_from_url(link), link
         else:
-            spec, discovered = load_from_api(link, api_key=api_key)
+            spec, discovered = load_from_api(link)
             return spec, discovered
 
     if file:
