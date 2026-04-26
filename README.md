@@ -88,7 +88,7 @@ custom-mcp-builder/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/custom-mcp-builder.git
+git clone https://github.com/openshaf/MCPer.git
 cd custom-mcp-builder
 ```
 
