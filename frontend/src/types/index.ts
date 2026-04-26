@@ -5,14 +5,15 @@ export type InputMode = "url" | "api" | "file" | "auto";
 export interface ApiEntry {
   id: string;
   mode: InputMode;
-  value: string;       // url string
-  name?: string;       // optional friendly label
+  value: string;
+  name?: string;
+  apiKey?: string;
   isVerifying?: boolean;
   status: "idle" | "loading" | "success" | "error";
   error?: string;
   endpointCount?: number;
   apiTitle?: string;
-  authType?: string;   // auth scheme detected (e.g. "bearer", "none")
+  authType?: string;
 }
 
 export type BuildStep = "idle" | "loading" | "analyzing" | "generating" | "done" | "error";

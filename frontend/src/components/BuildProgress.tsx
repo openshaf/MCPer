@@ -8,7 +8,7 @@ interface Props {
 }
 
 const STEPS = [
-  { key: "loading",    label: "Loading" },
+  { key: "loading",    label: "Fetching" },
   { key: "analyzing",  label: "Analysing" },
   { key: "generating", label: "Generating" },
   { key: "done",       label: "Ready" },
@@ -27,22 +27,28 @@ export default function BuildProgress({ step, totalApis }: Props) {
   };
 
   return (
-    <div style={{ width: "100%" }}>
-      {/* Step dots */}
+    <div style={{ width: "100%", fontFamily: "'Instrument Sans', sans-serif" }}>
+
+      {/* Step track */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 4, marginBottom: 16 }}>
         {STEPS.map((s, i) => {
           const isActive = s.key === step;
           const isDone   = isDoneAll || currentIdx > i;
-          const dotBg    = isDone ? "#10b981" : isActive ? "#6366f1" : "rgba(255,255,255,.08)";
-          const lineW    = isDone ? "100%" : "0%";
+
+          const dotBg =
+            isDone   ? "#FF6B1A" :
+            isActive ? "#FF6B1A" :
+            "#E8E4DC";
+
+          const dotColor = isDone || isActive ? "#fff" : "#9A948C";
 
           return (
             <div key={s.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
               <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                {/* Connector before (skip first) */}
+                {/* Connector before */}
                 {i > 0 && (
-                  <div style={{ flex: 1, height: 2, background: "rgba(255,255,255,.08)", borderRadius: 1, overflow: "hidden", marginRight: 4 }}>
-                    <div style={{ height: "100%", width: isDone ? "100%" : isActive ? "50%" : "0%", background: "#6366f1", borderRadius: 1, transition: "width .5s ease" }} />
+                  <div style={{ flex: 1, height: 2, background: "#E8E4DC", borderRadius: 1, overflow: "hidden", marginRight: 4 }}>
+                    <div style={{ height: "100%", width: isDone ? "100%" : isActive ? "50%" : "0%", background: "#FF6B1A", borderRadius: 1, transition: "width .6s ease" }} />
                   </div>
                 )}
                 {/* Dot */}
@@ -50,22 +56,26 @@ export default function BuildProgress({ step, totalApis }: Props) {
                   style={{
                     width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 700, color: "#fff",
+                    fontSize: 11, fontWeight: 700, color: dotColor,
                     background: dotBg,
-                    boxShadow: isActive ? "0 0 16px rgba(99,102,241,.6)" : isDone ? "0 0 10px rgba(16,185,129,.4)" : "none",
+                    boxShadow: isActive ? "0 0 0 4px rgba(255,107,26,.15)" : "none",
                     transition: "all .4s",
                   }}
                 >
                   {isDone ? "✓" : isActive ? <SpinIcon /> : i + 1}
                 </div>
-                {/* Connector after (skip last) */}
+                {/* Connector after */}
                 {i < STEPS.length - 1 && (
-                  <div style={{ flex: 1, height: 2, background: "rgba(255,255,255,.08)", borderRadius: 1, overflow: "hidden", marginLeft: 4 }}>
-                    <div style={{ height: "100%", width: isDone ? "100%" : "0%", background: "#10b981", borderRadius: 1, transition: "width .5s ease" }} />
+                  <div style={{ flex: 1, height: 2, background: "#E8E4DC", borderRadius: 1, overflow: "hidden", marginLeft: 4 }}>
+                    <div style={{ height: "100%", width: isDone ? "100%" : "0%", background: "#FF6B1A", borderRadius: 1, transition: "width .6s ease" }} />
                   </div>
                 )}
               </div>
-              <span style={{ fontSize: 10, fontWeight: 600, color: isDone ? "#6ee7b7" : isActive ? "#a5b4fc" : "rgba(255,255,255,.2)", textAlign: "center" }}>
+              <span style={{
+                fontSize: 10, fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase",
+                color: isDone ? "#FF6B1A" : isActive ? "#FF6B1A" : "#C8C4BC",
+                textAlign: "center",
+              }}>
                 {s.label}
               </span>
             </div>
@@ -76,20 +86,21 @@ export default function BuildProgress({ step, totalApis }: Props) {
       {/* Status bar */}
       <div
         style={{
-          display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-          borderRadius: 10, background: "rgba(0,0,0,.4)", border: "1px solid rgba(255,255,255,.06)",
+          display: "flex", alignItems: "center", gap: 10, padding: "12px 16px",
+          borderRadius: 8, background: "#fff", border: "1px solid #E8E4DC",
+          boxShadow: "0 1px 4px rgba(0,0,0,.04)",
         }}
       >
         {step === "done" ? (
-          <span style={{ fontSize: 16 }}>🎉</span>
+          <span style={{ fontSize: 16 }}>✓</span>
         ) : step === "error" ? (
-          <span style={{ fontSize: 16 }}>⚠</span>
+          <span style={{ fontSize: 16, color: "#dc2626" }}>⚠</span>
         ) : (
-          <SpinIcon style={{ color: "#818cf8" }} />
+          <SpinIcon style={{ color: "#FF6B1A" }} />
         )}
         <span style={{
           fontSize: 13,
-          color: step === "done" ? "#6ee7b7" : step === "error" ? "#f87171" : "rgba(255,255,255,.5)",
+          color: step === "done" ? "#059669" : step === "error" ? "#dc2626" : "#5A5550",
           fontWeight: step === "done" ? 600 : 400,
         }}>
           {msgs[step] ?? ""}
@@ -102,7 +113,7 @@ export default function BuildProgress({ step, totalApis }: Props) {
 function SpinIcon({ style }: { style?: React.CSSProperties }) {
   return (
     <svg
-      style={{ width: 14, height: 14, flexShrink: 0, animation: "spin 1s linear infinite", ...style }}
+      style={{ width: 14, height: 14, flexShrink: 0, animation: "spin 1s linear infinite", color: "currentColor", ...style }}
       viewBox="0 0 24 24" fill="none"
     >
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>

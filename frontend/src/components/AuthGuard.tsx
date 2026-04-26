@@ -11,7 +11,7 @@ interface Props {
 export default function AuthGuard({ children }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState<"checking" | "authenticated" | "unauthenticated">("checking");
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("mcper_token");
@@ -44,10 +44,23 @@ export default function AuthGuard({ children }: Props) {
 
   if (status === "checking") {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#070b14" }}>
+      <div style={{
+        minHeight: "100vh", background: "var(--bg)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid rgba(99,102,241,.2)", borderTopColor: "#6366f1", animation: "spin 1s linear infinite" }} />
-          <p style={{ color: "rgba(255,255,255,.35)", fontSize: 13 }}>Verifying session…</p>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%",
+            border: "3px solid rgba(255,107,26,.15)",
+            borderTopColor: "var(--accent)",
+            animation: "spin 1s linear infinite",
+          }} />
+          <p style={{
+            color: "var(--text-muted)", fontSize: 13,
+            fontFamily: "'Instrument Sans', sans-serif",
+          }}>
+            Verifying session…
+          </p>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>

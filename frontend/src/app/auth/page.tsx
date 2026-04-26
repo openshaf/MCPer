@@ -7,12 +7,12 @@ type Mode = "login" | "register";
 
 export default function AuthPage() {
   const router = useRouter();
-  const [mode, setMode]       = useState<Mode>("login");
-  const [email, setEmail]     = useState("");
+  const [mode, setMode]         = useState<Mode>("login");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +36,6 @@ export default function AuthPage() {
         setError(data.detail || "Something went wrong.");
         return;
       }
-      // Store token and user info
       if (data.access_token) {
         localStorage.setItem("mcper_token", data.access_token);
         localStorage.setItem("mcper_user", JSON.stringify({ id: data.id, email: data.email, username: data.username }));
@@ -50,44 +49,74 @@ export default function AuthPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#070b14", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, position: "relative" }}>
-      {/* Background orbs */}
-      <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", width: 500, height: 500, top: -150, left: -150, borderRadius: "50%", background: "radial-gradient(circle,rgba(99,102,241,.22) 0%,transparent 70%)", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", width: 400, height: 400, bottom: -100, right: -100, borderRadius: "50%", background: "radial-gradient(circle,rgba(139,92,246,.18) 0%,transparent 70%)", filter: "blur(80px)" }} />
-      </div>
+    <div style={{
+      minHeight: "100vh",
+      background: "var(--bg)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+    }}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
 
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 420 }}>
-        {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 12, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#fff", fontSize: 16, boxShadow: "0 4px 20px rgba(99,102,241,.5)" }}>M</div>
-            <span style={{ fontWeight: 800, color: "#fff", fontSize: 20 }}>MCPer</span>
+        {/* Logo / wordmark */}
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{ display: "inline-block", marginBottom: 16 }}>
+            <span
+              style={{
+                fontFamily: "'Special Elite', cursive",
+                fontSize: 28,
+                letterSpacing: "2px",
+                color: "#fff",
+                background: "var(--accent)",
+                padding: "6px 18px",
+                borderRadius: 6,
+                display: "inline-block",
+                transform: "rotate(-2deg)",
+              }}
+            >
+              toolRelay
+            </span>
           </div>
-          <p style={{ color: "rgba(255,255,255,.35)", fontSize: 13, marginTop: 8 }}>
-            {mode === "login" ? "Sign in to your account" : "Create a new account"}
+          <p style={{
+            fontFamily: "'Instrument Sans', sans-serif",
+            fontSize: 14,
+            color: "var(--text-secondary)",
+            margin: 0,
+          }}>
+            {mode === "login" ? "Welcome back — sign in to continue" : "Create your account"}
           </p>
         </div>
 
         {/* Card */}
         <div style={{
-          borderRadius: 24, padding: "32px 28px",
-          background: "linear-gradient(145deg,rgba(17,24,39,.97),rgba(13,21,37,.99))",
-          border: "1px solid rgba(99,102,241,.18)",
-          boxShadow: "0 0 0 1px rgba(99,102,241,.07), 0 40px 80px rgba(0,0,0,.6)",
+          background: "#fff",
+          border: "1px solid var(--border)",
+          borderRadius: 14,
+          padding: "32px 28px",
+          boxShadow: "0 4px 24px rgba(0,0,0,.06)",
         }}>
           {/* Tab switcher */}
-          <div style={{ display: "flex", background: "rgba(0,0,0,.35)", borderRadius: 12, padding: 4, marginBottom: 28, border: "1px solid rgba(255,255,255,.06)" }}>
+          <div style={{
+            display: "flex",
+            background: "var(--bg)",
+            borderRadius: 8,
+            padding: 4,
+            marginBottom: 28,
+            border: "1px solid var(--border)",
+          }}>
             {(["login", "register"] as Mode[]).map(m => (
               <button
                 key={m}
                 onClick={() => { setMode(m); setError(null); }}
                 style={{
-                  flex: 1, padding: "9px 0", borderRadius: 9, border: "none", cursor: "pointer",
-                  fontFamily: "inherit", fontSize: 13, fontWeight: 700,
-                  background: mode === m ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "transparent",
-                  color: mode === m ? "#fff" : "rgba(255,255,255,.35)",
-                  boxShadow: mode === m ? "0 2px 12px rgba(99,102,241,.4)" : "none",
+                  flex: 1, padding: "9px 0", borderRadius: 6, border: "none",
+                  cursor: "pointer",
+                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontSize: 13, fontWeight: 700,
+                  background: mode === m ? "var(--accent)" : "transparent",
+                  color: mode === m ? "#fff" : "var(--text-muted)",
+                  boxShadow: mode === m ? "0 2px 10px rgba(255,107,26,.28)" : "none",
                   transition: "all .2s",
                 }}
               >
@@ -96,15 +125,23 @@ export default function AuthPage() {
             ))}
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {mode === "register" && (
               <Field id="auth-username" label="Username" type="text" value={username} onChange={setUsername} placeholder="your_handle" autoComplete="username" />
             )}
             <Field id="auth-email" label="Email" type="email" value={email} onChange={setEmail} placeholder="you@example.com" autoComplete="email" />
-            
+
             {/* Password with show/hide */}
             <div>
-              <label htmlFor="auth-password" style={{ display: "block", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,.5)", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".05em" }}>Password</label>
+              <label htmlFor="auth-password" style={{
+                display: "block", fontSize: 11, fontWeight: 700,
+                color: "var(--text-muted)", marginBottom: 6,
+                textTransform: "uppercase", letterSpacing: ".06em",
+                fontFamily: "'Instrument Sans', sans-serif",
+              }}>
+                Password
+              </label>
               <div style={{ position: "relative" }}>
                 <input
                   id="auth-password"
@@ -114,52 +151,73 @@ export default function AuthPage() {
                   placeholder="••••••••"
                   autoComplete={mode === "login" ? "current-password" : "new-password"}
                   required
-                  className="input-glow"
                   style={{
-                    width: "100%", padding: "11px 44px 11px 14px", borderRadius: 10,
-                    background: "rgba(0,0,0,.4)", border: "1px solid rgba(255,255,255,.1)",
-                    color: "rgba(255,255,255,.85)", fontSize: 14, fontFamily: "inherit",
-                    boxSizing: "border-box",
+                    width: "100%", padding: "11px 44px 11px 14px", borderRadius: 8,
+                    background: "#fafaf8",
+                    border: "1px solid var(--border-input)",
+                    color: "var(--text-primary)", fontSize: 14,
+                    fontFamily: "'Instrument Sans', sans-serif",
+                    outline: "none", boxSizing: "border-box",
+                    transition: "border-color .2s",
                   }}
+                  onFocus={e => (e.target.style.borderColor = "var(--accent)")}
+                  onBlur={e => (e.target.style.borderColor = "var(--border-input)")}
                 />
-                <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,.3)", fontSize: 16, lineHeight: 1 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPass(v => !v)}
+                  style={{
+                    position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                    background: "none", border: "none", cursor: "pointer",
+                    color: "var(--text-muted)", fontSize: 16, lineHeight: 1, padding: 4,
+                  }}
+                  aria-label={showPass ? "Hide password" : "Show password"}
+                >
                   {showPass ? "🙈" : "👁"}
                 </button>
               </div>
             </div>
 
+            {/* Error */}
             {error && (
-              <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", fontSize: 13, color: "#fca5a5" }}>
-                ⚠ {error}
+              <div style={{
+                padding: "10px 14px", borderRadius: 8,
+                background: "rgba(239,68,68,.06)",
+                border: "1px solid rgba(239,68,68,.18)",
+                fontSize: 13, color: "#b91c1c",
+                fontFamily: "'Instrument Sans', sans-serif",
+                display: "flex", gap: 8, alignItems: "flex-start",
+              }}>
+                <span style={{ flexShrink: 0 }}>⚠</span> {error}
               </div>
             )}
 
+            {/* Submit */}
             <button
               id="auth-submit-button"
               type="submit"
               disabled={loading}
-              className="btn-lift"
-              style={{
-                marginTop: 6, padding: "13px 0", borderRadius: 12, border: "none",
-                background: loading ? "linear-gradient(135deg,#4338ca,#6d28d9)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                color: "#fff", fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
-                fontFamily: "inherit", boxShadow: loading ? "none" : "0 6px 24px rgba(99,102,241,.4)",
-                opacity: loading ? .7 : 1, transition: "opacity .2s",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              }}
+              className="btn-primary"
+              style={{ marginTop: 6, padding: "13px 0", borderRadius: 8, width: "100%", fontSize: 14 }}
             >
               {loading ? (
-                <>
-                  <SpinIcon />
-                  {mode === "login" ? "Signing in…" : "Creating account…"}
-                </>
-              ) : mode === "login" ? "Sign In →" : "Create Account →"}
+                <><SpinIcon />{mode === "login" ? "Signing in…" : "Creating account…"}</>
+              ) : (
+                mode === "login" ? "Sign In →" : "Create Account →"
+              )}
             </button>
           </form>
         </div>
 
-        <p style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: "rgba(255,255,255,.2)" }}>
-          <a href="/" style={{ color: "rgba(165,180,252,.5)", textDecoration: "none" }}>← Back to MCPer</a>
+        {/* Back link */}
+        <p style={{
+          textAlign: "center", marginTop: 20, fontSize: 13,
+          fontFamily: "'Instrument Sans', sans-serif",
+          color: "var(--text-muted)",
+        }}>
+          <a href="/" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+            ← Back to toolRelay
+          </a>
         </p>
       </div>
 
@@ -174,7 +232,14 @@ function Field({ id, label, type, value, onChange, placeholder, autoComplete }: 
 }) {
   return (
     <div>
-      <label htmlFor={id} style={{ display: "block", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,.5)", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".05em" }}>{label}</label>
+      <label htmlFor={id} style={{
+        display: "block", fontSize: 11, fontWeight: 700,
+        color: "var(--text-muted)", marginBottom: 6,
+        textTransform: "uppercase", letterSpacing: ".06em",
+        fontFamily: "'Instrument Sans', sans-serif",
+      }}>
+        {label}
+      </label>
       <input
         id={id}
         type={type}
@@ -183,13 +248,17 @@ function Field({ id, label, type, value, onChange, placeholder, autoComplete }: 
         placeholder={placeholder}
         autoComplete={autoComplete}
         required
-        className="input-glow"
         style={{
-          width: "100%", padding: "11px 14px", borderRadius: 10,
-          background: "rgba(0,0,0,.4)", border: "1px solid rgba(255,255,255,.1)",
-          color: "rgba(255,255,255,.85)", fontSize: 14, fontFamily: "inherit",
-          boxSizing: "border-box",
+          width: "100%", padding: "11px 14px", borderRadius: 8,
+          background: "#fafaf8",
+          border: "1px solid var(--border-input)",
+          color: "var(--text-primary)", fontSize: 14,
+          fontFamily: "'Instrument Sans', sans-serif",
+          outline: "none", boxSizing: "border-box",
+          transition: "border-color .2s",
         }}
+        onFocus={e => (e.target.style.borderColor = "var(--accent)")}
+        onBlur={e => (e.target.style.borderColor = "var(--border-input)")}
       />
     </div>
   );

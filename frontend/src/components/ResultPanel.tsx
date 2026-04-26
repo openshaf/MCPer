@@ -21,68 +21,86 @@ export default function ResultPanel({ result, onReset }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
       {/* ── Success banner ── */}
       <div style={{
-        borderRadius: 16, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14,
-        background: "linear-gradient(135deg,rgba(16,185,129,.1),rgba(6,182,212,.07))",
-        border: "1px solid rgba(16,185,129,.25)",
+        borderRadius: 10, padding: "16px 20px",
+        display: "flex", alignItems: "center", gap: 14,
+        background: "rgba(255,107,26,.06)",
+        border: "1px solid rgba(255,107,26,.2)",
       }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, background: "rgba(16,185,129,.18)" }}>
-          🎉
-        </div>
+        <div style={{
+          width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 22, background: "rgba(255,107,26,.12)",
+        }}>🎉</div>
         <div>
-          <p style={{ fontWeight: 700, color: "#6ee7b7", fontSize: 15 }}>MCP Server Generated!</p>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,.4)", marginTop: 2 }}>
+          <p style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 15, margin: 0, fontFamily: "'Instrument Sans', sans-serif" }}>
+            MCP Server Generated!
+          </p>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3, margin: "3px 0 0", fontFamily: "'Instrument Sans', sans-serif" }}>
             {result.totalEndpoints} endpoint{result.totalEndpoints !== 1 ? "s" : ""} across{" "}
-            {result.apiNames.length} API{result.apiNames.length !== 1 ? "s" : ""} → {result.apiNames.join(", ")}
+            {result.apiNames.length} API{result.apiNames.length !== 1 ? "s" : ""} — {result.apiNames.join(", ")}
           </p>
           {!result.authenticated && (
-            <p style={{ fontSize: 11, color: "rgba(165,180,252,.6)", marginTop: 4 }}>
-              <a href="/auth" style={{ color: "#a5b4fc", textDecoration: "underline" }}>Sign in</a> to save this build to your dashboard
+            <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, margin: "4px 0 0", fontFamily: "'Instrument Sans', sans-serif" }}>
+              <a href="/auth" style={{ color: "var(--accent)", textDecoration: "underline" }}>Sign in</a>{" "}
+              to save this build to your dashboard
             </p>
           )}
         </div>
       </div>
 
       {/* ── .env instructions callout ── */}
-      <div style={{ padding: "12px 16px", borderRadius: 12, background: "rgba(245,158,11,.07)", border: "1px solid rgba(245,158,11,.2)", display: "flex", gap: 10, alignItems: "flex-start" }}>
-        <span style={{ color: "#fbbf24", flexShrink: 0, marginTop: 1, fontSize: 14 }}>🔑</span>
+      <div style={{
+        padding: "12px 16px", borderRadius: 8,
+        background: "rgba(217,119,6,.05)", border: "1px solid rgba(217,119,6,.18)",
+        display: "flex", gap: 10, alignItems: "flex-start",
+      }}>
+        <span style={{ color: "#B45309", flexShrink: 0, marginTop: 1, fontSize: 14 }}>🔑</span>
         <div>
-          <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, color: "rgba(253,211,77,.9)" }}>Add API keys to the .env file</p>
-          <p style={{ margin: 0, fontSize: 12, color: "rgba(253,211,77,.6)", lineHeight: 1.6 }}>
-            A <code style={{ fontFamily: "monospace", background: "rgba(0,0,0,.3)", padding: "1px 4px", borderRadius: 3 }}>.env</code> file was generated alongside your server with placeholder values.
+          <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, color: "#92400E", fontFamily: "'Instrument Sans', sans-serif" }}>
+            Add API keys to the .env file
+          </p>
+          <p style={{ margin: 0, fontSize: 12, color: "#B45309", lineHeight: 1.6, fontFamily: "'Instrument Sans', sans-serif" }}>
+            A <code style={{ fontFamily: "'JetBrains Mono', monospace", background: "rgba(0,0,0,.06)", padding: "1px 4px", borderRadius: 3 }}>.env</code>{" "}
+            file was generated alongside your server with placeholder values.
             Open it in the server folder and paste your API keys before running.
           </p>
         </div>
       </div>
 
-      {/* ── View code buttons ── */}
+      {/* ── View / Download buttons ── */}
       <div style={{ display: "flex", gap: 8 }}>
         <button
           onClick={() => setViewer("server")}
           style={{
-            flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(99,102,241,.3)",
-            background: "rgba(99,102,241,.1)", color: "#a5b4fc",
-            fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+            flex: 1, padding: "11px 0", borderRadius: 8,
+            border: "1px solid rgba(255,107,26,.25)",
+            background: "rgba(255,107,26,.06)", color: "var(--accent)",
+            fontSize: 13, fontWeight: 600, cursor: "pointer",
+            fontFamily: "'Instrument Sans', sans-serif",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             transition: "all .2s",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(99,102,241,.2)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(99,102,241,.1)"; }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,26,.14)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,26,.06)"; }}
         >
           🐍 View server.py
         </button>
         <button
           onClick={() => setViewer("env")}
           style={{
-            flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(245,158,11,.25)",
-            background: "rgba(245,158,11,.07)", color: "#fcd34d",
-            fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+            flex: 1, padding: "11px 0", borderRadius: 8,
+            border: "1px solid rgba(217,119,6,.25)",
+            background: "rgba(217,119,6,.05)", color: "#B45309",
+            fontSize: 13, fontWeight: 600, cursor: "pointer",
+            fontFamily: "'Instrument Sans', sans-serif",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             transition: "all .2s",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(245,158,11,.15)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(245,158,11,.07)"; }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(217,119,6,.12)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(217,119,6,.05)"; }}
         >
           ⚙️ View .env template
         </button>
@@ -97,18 +115,20 @@ export default function ResultPanel({ result, onReset }: Props) {
         id="reset-button"
         onClick={onReset}
         style={{
-          width: "100%", padding: "12px 0", borderRadius: 12, cursor: "pointer",
-          background: "transparent", border: "1px solid rgba(255,255,255,.1)",
-          color: "rgba(255,255,255,.4)", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
+          width: "100%", padding: "13px 0", borderRadius: 8, cursor: "pointer",
+          background: "transparent",
+          border: "1.5px dashed #D8D4CC",
+          color: "var(--text-muted)", fontSize: 13, fontWeight: 600,
+          fontFamily: "'Instrument Sans', sans-serif",
           transition: "all .2s",
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,.2)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.75)"; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,.1)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.4)"; }}
+        onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.borderColor = "var(--accent)"; b.style.color = "var(--accent)"; }}
+        onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.borderColor = "#D8D4CC"; b.style.color = "var(--text-muted)"; }}
       >
         ← Build another server
       </button>
 
-      {/* ── Code viewer modal ── */}
+      {/* ── Code viewer modals ── */}
       {viewer === "server" && (
         <ServerCodeViewer
           title="server.py"
@@ -137,25 +157,33 @@ function CodeBlock({
 }) {
   const copied = copiedKey === copyKey;
   return (
-    <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,.07)" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px", background: "rgba(0,0,0,.5)", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
-        <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.25)" }}>{label}</span>
+    <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)" }}>
+      {/* Header */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "8px 14px",
+        background: "var(--bg)", borderBottom: "1px solid #E8E4DC",
+      }}>
+        <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-muted)", fontFamily: "'Instrument Sans', sans-serif" }}>
+          {label}
+        </span>
         <button
           onClick={() => onCopy(code, copyKey)}
           style={{
             padding: "3px 10px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 10, fontWeight: 700,
-            background: copied ? "rgba(16,185,129,.2)" : "rgba(99,102,241,.15)",
-            color: copied ? "#6ee7b7" : "#a5b4fc",
-            transition: "all .2s", fontFamily: "inherit",
+            background: copied ? "rgba(5,150,105,.12)" : "rgba(255,107,26,.10)",
+            color: copied ? "#059669" : "var(--accent)",
+            transition: "all .2s", fontFamily: "'Instrument Sans', sans-serif",
           }}
         >
           {copied ? "✓ Copied" : "Copy"}
         </button>
       </div>
+      {/* Code */}
       <pre style={{
         padding: "12px 14px", margin: 0, fontSize: 12, lineHeight: 1.65, overflowX: "auto",
-        background: highlight ? "rgba(99,102,241,.06)" : "rgba(0,0,0,.4)",
-        color: highlight ? "#c7d2fe" : "rgba(255,255,255,.65)",
+        background: highlight ? "#1C1917" : "#2A2623",
+        color: highlight ? "#FCD34D" : "#D4CFC9",
         fontFamily: "'JetBrains Mono', monospace",
         whiteSpace: "pre-wrap", wordBreak: "break-all",
       }}>

@@ -54,96 +54,183 @@ function Dashboard() {
   const totalEndpoints = builds.reduce((sum, b) => sum + b.total_endpoints, 0);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#070b14", position: "relative" }}>
-      {/* Background orbs */}
-      <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", width: 600, height: 600, top: -200, left: -200, borderRadius: "50%", background: "radial-gradient(circle,rgba(99,102,241,.2) 0%,transparent 70%)", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", width: 400, height: 400, bottom: 0, right: -100, borderRadius: "50%", background: "radial-gradient(circle,rgba(139,92,246,.15) 0%,transparent 70%)", filter: "blur(80px)" }} />
-      </div>
+    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Nav */}
-        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 40px", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: "#fff", fontSize: 14, boxShadow: "0 4px 16px rgba(99,102,241,.45)" }}>M</div>
-              <span style={{ fontWeight: 800, fontSize: 16, color: "#fff" }}>MCPer</span>
-            </a>
-            <span style={{ color: "rgba(255,255,255,.2)", fontSize: 13, margin: "0 4px" }}>›</span>
-            <span style={{ fontWeight: 600, fontSize: 14, color: "rgba(255,255,255,.6)" }}>Dashboard</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {user && (
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,.4)" }}>
-                👤 <strong style={{ color: "rgba(255,255,255,.7)" }}>{user.username || user.email}</strong>
-              </span>
-            )}
-            <button
-              onClick={handleLogout}
-              style={{ padding: "7px 16px", borderRadius: 10, border: "1px solid rgba(255,255,255,.1)", background: "transparent", color: "rgba(255,255,255,.4)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all .2s" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,.4)"; (e.currentTarget as HTMLButtonElement).style.color = "#f87171"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,.1)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.4)"; }}
-            >
-              Sign out
-            </button>
-          </div>
-        </nav>
-
-        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" }}>
-          {/* Page title */}
-          <div style={{ marginBottom: 32 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 900, color: "#fff", margin: "0 0 6px", letterSpacing: "-.02em" }}>Your MCP Servers</h1>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,.35)", margin: 0 }}>All your generated FastMCP servers in one place</p>
-          </div>
-
-          {/* Stats bar */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginBottom: 32 }}>
-            {[
-              { label: "Total Builds",    value: builds.length,   icon: "🔧", color: "#6366f1" },
-              { label: "Total Endpoints", value: totalEndpoints,  icon: "⚡", color: "#8b5cf6" },
-            ].map(stat => (
-              <div key={stat.label} style={{ padding: "20px 22px", borderRadius: 16, background: "rgba(17,24,39,.85)", border: "1px solid rgba(255,255,255,.07)", display: "flex", alignItems: "center", gap: 14 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: `${stat.color}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{stat.icon}</div>
-                <div>
-                  <p style={{ fontSize: 24, fontWeight: 800, color: "#fff", margin: 0 }}>{stat.value}</p>
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,.35)", margin: 0 }}>{stat.label}</p>
-                </div>
-              </div>
-            ))}
-            <div style={{ padding: "20px 22px", borderRadius: 16, background: "rgba(99,102,241,.08)", border: "1px solid rgba(99,102,241,.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <a href="/" style={{ fontSize: 13, fontWeight: 700, color: "#a5b4fc", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
-                ⚡ Build a new server
-              </a>
-            </div>
-          </div>
-
-          {/* Build list */}
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "60px 0" }}>
-              <div style={{ display: "inline-block", width: 32, height: 32, borderRadius: "50%", border: "3px solid rgba(99,102,241,.2)", borderTopColor: "#6366f1", animation: "spin 1s linear infinite" }} />
-              <p style={{ color: "rgba(255,255,255,.3)", marginTop: 12, fontSize: 13 }}>Loading builds…</p>
-            </div>
-          ) : builds.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 0", borderRadius: 20, border: "2px dashed rgba(255,255,255,.08)" }}>
-              <p style={{ fontSize: 40, marginBottom: 16 }}>🚀</p>
-              <p style={{ color: "rgba(255,255,255,.4)", fontSize: 14, marginBottom: 16 }}>No builds yet</p>
-              <a href="/" style={{ display: "inline-flex", padding: "10px 24px", borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>Build your first MCP server</a>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {builds.map(build => (
-                <BuildCard
-                  key={build.id}
-                  build={build}
-                  copiedId={copiedId}
-                  onCopy={copy}
-                  onViewServer={() => setViewer({ build, type: "server" })}
-                  onViewEnv={() => setViewer({ build, type: "env" })}
-                />
-              ))}
-            </div>
-          )}
+      {/* ── Nav ── */}
+      <nav style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "16px 40px",
+        borderBottom: "1px solid var(--border)",
+        background: "#fff",
+        position: "sticky", top: 0, zIndex: 50,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{
+              fontFamily: "'Special Elite', cursive",
+              fontSize: 18, letterSpacing: "1.5px",
+              color: "#fff",
+              background: "var(--accent)",
+              padding: "3px 10px", borderRadius: 4,
+              display: "inline-block", transform: "rotate(-2deg)",
+            }}>
+              toolRelay
+            </span>
+          </a>
+          <span style={{ color: "var(--border)", fontSize: 16, margin: "0 2px" }}>›</span>
+          <span style={{
+            fontFamily: "'Instrument Sans', sans-serif",
+            fontWeight: 600, fontSize: 14, color: "var(--text-secondary)",
+          }}>
+            Dashboard
+          </span>
         </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {user && (
+            <span style={{
+              fontSize: 13, color: "var(--text-secondary)",
+              fontFamily: "'Instrument Sans', sans-serif",
+            }}>
+              👤 <strong style={{ color: "var(--text-primary)" }}>{user.username || user.email}</strong>
+            </span>
+          )}
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "7px 16px", borderRadius: 8,
+              border: "1px solid var(--border)",
+              background: "transparent", color: "var(--text-muted)",
+              fontSize: 13, fontWeight: 600, cursor: "pointer",
+              fontFamily: "'Instrument Sans', sans-serif",
+              transition: "all .2s",
+            }}
+            onMouseEnter={e => {
+              const b = e.currentTarget as HTMLButtonElement;
+              b.style.borderColor = "rgba(239,68,68,.35)";
+              b.style.color = "#dc2626";
+            }}
+            onMouseLeave={e => {
+              const b = e.currentTarget as HTMLButtonElement;
+              b.style.borderColor = "var(--border)";
+              b.style.color = "var(--text-muted)";
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      </nav>
+
+      {/* ── Page content ── */}
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" }}>
+
+        {/* Page title */}
+        <div style={{ marginBottom: 32 }}>
+          <h1 style={{
+            fontFamily: "'Instrument Serif', Georgia, serif",
+            fontSize: "clamp(1.8rem, 4vw, 2.4rem)",
+            fontWeight: 400, color: "var(--text-primary)",
+            margin: "0 0 6px", letterSpacing: "-.01em",
+          }}>
+            Your MCP Servers
+          </h1>
+          <p style={{
+            fontSize: 14, color: "var(--text-secondary)", margin: 0,
+            fontFamily: "'Instrument Sans', sans-serif",
+          }}>
+            All your generated FastMCP servers in one place
+          </p>
+        </div>
+
+        {/* Stats bar */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginBottom: 32 }}>
+          {[
+            { label: "Total Builds",    value: builds.length,  icon: "🔧" },
+            { label: "Total Endpoints", value: totalEndpoints, icon: "⚡" },
+          ].map(stat => (
+            <div key={stat.label} style={{
+              padding: "20px 22px", borderRadius: 10,
+              background: "#fff", border: "1px solid var(--border)",
+              display: "flex", alignItems: "center", gap: 14,
+              boxShadow: "0 1px 4px rgba(0,0,0,.04)",
+            }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10,
+                background: "rgba(255,107,26,.08)",
+                border: "1px solid rgba(255,107,26,.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 18, flexShrink: 0,
+              }}>
+                {stat.icon}
+              </div>
+              <div>
+                <p style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>{stat.value}</p>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, fontFamily: "'Instrument Sans', sans-serif" }}>{stat.label}</p>
+              </div>
+            </div>
+          ))}
+          {/* Build CTA */}
+          <div style={{
+            padding: "20px 22px", borderRadius: 10,
+            background: "rgba(255,107,26,.06)", border: "1px dashed rgba(255,107,26,.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <a href="/" style={{
+              fontSize: 13, fontWeight: 700, color: "var(--accent)",
+              textDecoration: "none",
+              fontFamily: "'Instrument Sans', sans-serif",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              + Build a new server
+            </a>
+          </div>
+        </div>
+
+        {/* Build list */}
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "60px 0" }}>
+            <div style={{
+              display: "inline-block", width: 32, height: 32, borderRadius: "50%",
+              border: "3px solid rgba(255,107,26,.15)", borderTopColor: "var(--accent)",
+              animation: "spin 1s linear infinite",
+            }} />
+            <p style={{ color: "var(--text-muted)", marginTop: 12, fontSize: 13, fontFamily: "'Instrument Sans', sans-serif" }}>Loading builds…</p>
+          </div>
+        ) : builds.length === 0 ? (
+          <div style={{
+            textAlign: "center", padding: "60px 0",
+            borderRadius: 12, border: "2px dashed var(--border)",
+          }}>
+            <p style={{ fontSize: 40, marginBottom: 12 }}>🚀</p>
+            <p style={{
+              color: "var(--text-secondary)", fontSize: 14, marginBottom: 20,
+              fontFamily: "'Instrument Sans', sans-serif",
+            }}>
+              No builds yet — generate your first MCP server
+            </p>
+            <a href="/" style={{
+              display: "inline-flex", padding: "11px 28px", borderRadius: 8,
+              background: "var(--accent)", color: "#fff",
+              fontWeight: 700, fontSize: 13, textDecoration: "none",
+              fontFamily: "'Instrument Sans', sans-serif",
+              boxShadow: "0 4px 16px rgba(255,107,26,.28)",
+            }}>
+              Build your first MCP server
+            </a>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {builds.map(build => (
+              <BuildCard
+                key={build.id}
+                build={build}
+                copiedId={copiedId}
+                onCopy={copy}
+                onViewServer={() => setViewer({ build, type: "server" })}
+                onViewEnv={() => setViewer({ build, type: "env" })}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Code viewer modal */}
@@ -173,31 +260,59 @@ function BuildCard({ build, copiedId, onCopy, onViewServer, onViewEnv }: {
   });
 
   return (
-    <div style={{
-      borderRadius: 16, padding: "20px 24px",
-      background: "linear-gradient(145deg,rgba(17,24,39,.9),rgba(13,21,37,.95))",
-      border: "1px solid rgba(255,255,255,.07)",
-      transition: "border-color .2s",
-    }}
-    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(99,102,241,.2)"; }}
-    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,.07)"; }}
+    <div
+      style={{
+        borderRadius: 10, padding: "18px 22px",
+        background: "#fff", border: "1px solid var(--border)",
+        boxShadow: "0 1px 4px rgba(0,0,0,.04)",
+        transition: "border-color .2s, box-shadow .2s",
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "var(--accent)";
+        el.style.boxShadow = "0 4px 16px rgba(255,107,26,.08)";
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "var(--border)";
+        el.style.boxShadow = "0 1px 4px rgba(0,0,0,.04)";
+      }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        {/* Left: info */}
+        {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0 }}>{build.project_name}</h3>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,.25)", fontFamily: "monospace" }}>{date}</span>
+            <h3 style={{
+              fontSize: 15, fontWeight: 700, color: "var(--text-primary)", margin: 0,
+              fontFamily: "'Instrument Sans', sans-serif",
+            }}>
+              {build.project_name}
+            </h3>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace" }}>{date}</span>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {(Array.isArray(build.api_names) ? build.api_names : []).map(name => (
-              <span key={name} className="badge badge-indigo" style={{ fontSize: 10 }}>{name}</span>
+              <span key={name} style={{
+                fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+                background: "rgba(255,107,26,.08)", color: "var(--accent)",
+                border: "1px solid rgba(255,107,26,.2)",
+                fontFamily: "'Instrument Sans', sans-serif", letterSpacing: ".04em",
+              }}>
+                {name}
+              </span>
             ))}
-            <span className="badge badge-emerald" style={{ fontSize: 10 }}>⚡ {build.total_endpoints} endpoints</span>
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+              background: "rgba(5,150,105,.08)", color: "#059669",
+              border: "1px solid rgba(5,150,105,.2)",
+              fontFamily: "'Instrument Sans', sans-serif",
+            }}>
+              ⚡ {build.total_endpoints} endpoints
+            </span>
           </div>
         </div>
 
-        {/* Right: actions */}
+        {/* Actions */}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0 }}>
           <ActionBtn onClick={onViewServer} label="🐍 server.py" />
           <ActionBtn onClick={onViewEnv} label="⚙️ .env" />
@@ -214,13 +329,25 @@ function ActionBtn({ onClick, label }: { onClick: () => void; label: string }) {
     <button
       onClick={onClick}
       style={{
-        padding: "6px 14px", borderRadius: 9, border: "1px solid rgba(255,255,255,.1)",
-        background: "rgba(255,255,255,.04)", color: "rgba(255,255,255,.55)",
-        fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+        padding: "6px 14px", borderRadius: 7,
+        border: "1px solid var(--border)",
+        background: "transparent", color: "var(--text-secondary)",
+        fontSize: 12, fontWeight: 600, cursor: "pointer",
+        fontFamily: "'Instrument Sans', sans-serif",
         transition: "all .2s", whiteSpace: "nowrap",
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(99,102,241,.15)"; (e.currentTarget as HTMLButtonElement).style.color = "#a5b4fc"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(99,102,241,.3)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,.04)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.55)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,.1)"; }}
+      onMouseEnter={e => {
+        const b = e.currentTarget as HTMLButtonElement;
+        b.style.background = "rgba(255,107,26,.08)";
+        b.style.color = "var(--accent)";
+        b.style.borderColor = "rgba(255,107,26,.3)";
+      }}
+      onMouseLeave={e => {
+        const b = e.currentTarget as HTMLButtonElement;
+        b.style.background = "transparent";
+        b.style.color = "var(--text-secondary)";
+        b.style.borderColor = "var(--border)";
+      }}
     >
       {label}
     </button>
