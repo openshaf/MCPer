@@ -15,7 +15,7 @@ function nextId() {
 }
 
 function createEntry(): ApiEntry {
-  return { id: nextId(), mode: "api", value: "", status: "idle" };
+  return { id: nextId(), mode: "url", value: "", status: "idle" };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -47,18 +47,58 @@ export default function HomePage() {
     let ok = true;
     setEntries((p) =>
       p.map((e) => {
-        if (e.mode !== "file" && !e.value.trim()) {
+        if (!e.value.trim()) {
           ok = false;
           return { ...e, error: "This field is required.", status: "error" };
-        }
-        if (e.mode === "file" && !e.fileContent) {
-          ok = false;
-          return { ...e, error: "Please select a file.", status: "error" };
         }
         return { ...e, error: undefined };
       })
     );
     return ok;
+  };
+
+  /* ── Verify ── */
+  const handleVerify = async (id: string) => {
+    const entry = entries.find(e => e.id === id);
+    if (!entry || !entry.value.trim()) {
+      updateEntry(id, { error: "This field is required.", status: "error" });
+      return false;
+    }
+
+    updateEntry(id, { isVerifying: true, status: "loading", error: undefined });
+
+    try {
+      const res = await fetch("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: entry.mode,
+          value: entry.value,
+          api_key: entry.apiKey || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Verification failed" }));
+        throw new Error(err.error || "Verification failed");
+      }
+
+      const data = await res.json();
+      updateEntry(id, { 
+        status: "success", 
+        isVerifying: false,
+        apiTitle: data.apiTitle,
+        endpointCount: data.endpointCount
+      });
+      return true;
+    } catch (err) {
+      updateEntry(id, { 
+        status: "error", 
+        isVerifying: false,
+        error: err instanceof Error ? err.message : "Unknown error"
+      });
+      return false;
+    }
   };
 
   /* ── Build ── */
@@ -67,14 +107,38 @@ export default function HomePage() {
     setResult(null);
     if (!validate()) return;
 
+    // Verify any idle entries automatically
+    const unverified = entries.filter(e => e.status === "idle");
+    if (unverified.length > 0) {
+      setBuildStep("loading");
+      const results = await Promise.all(unverified.map(e => handleVerify(e.id)));
+      if (results.some(success => !success)) {
+        setGlobalErr("Some APIs failed verification. Please fix them before building.");
+        setBuildStep("idle");
+        return;
+      }
+    }
+
+    // Check if any entries are in error state
+    // We get the fresh state because handleVerify updates are async and might not be fully reflected in the local closure scope,
+    // actually Promise.all with handleVerify will update the React state but the local 'entries' closure is stale.
+    // However, if results.some is false, we already aborted above.
+    // Let's just double check if the current closure had errors before we even verified.
+    if (entries.some(e => e.status === "error")) {
+        setGlobalErr("Some APIs have errors. Please fix them before building.");
+        return;
+    }
+
     setBuildStep("loading");
-    setEntries((p) => p.map((e) => ({ ...e, status: "loading" as const })));
+    // We need to mark them as loading for the build step, but they are already success.
+    // Let's just set the global buildStep to loading.
 
     try {
       const payload = entries.map((e) => ({
         mode: e.mode,
-        value: e.mode === "file" ? e.fileContent : e.value,
+        value: e.value,
         name: e.name,
+        api_key: e.apiKey || undefined,
       }));
 
       const res = await fetch("/api/build", {
@@ -100,7 +164,6 @@ export default function HomePage() {
     } catch (err) {
       setGlobalErr(err instanceof Error ? err.message : "Unknown error");
       setBuildStep("error");
-      setEntries((p) => p.map((e) => ({ ...e, status: "idle" as const })));
     }
   };
 
@@ -218,6 +281,7 @@ export default function HomePage() {
                       index={i}
                       onUpdate={updateEntry}
                       onRemove={removeEntry}
+                      onVerify={handleVerify}
                       canRemove={entries.length > 1}
                     />
                   ))}
@@ -297,7 +361,7 @@ export default function HomePage() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14 }}>
             <FeatureCard icon="🔍" title="Auto-discovery"    badge="Smart"  badgeVariant="indigo"  description="Just paste the API base URL — MCPer probes common paths to find the OpenAPI spec automatically." />
-            <FeatureCard icon="📥" title="Multi-format Input"                                       description="Load specs via base URL, direct spec URL, or upload a local .json / .yaml file." />
+            <FeatureCard icon="📥" title="Smart Input Routing"                                      description="Simply paste any link. MCPer instantly detects whether it's a direct spec URL or requires API auto-discovery." />
             <FeatureCard icon="🔒" title="Auth Detection"    badge="Secure" badgeVariant="emerald" description="Automatically detects Bearer, API Key, and Basic auth schemes, mapping them to environment variables." />
             <FeatureCard icon="⚡" title="FastMCP Generation"                                       description="Generates fully type-annotated @mcp.tool() functions using Jinja2 templates and FastMCP." />
             <FeatureCard icon="🔄" title="Redirect Handling" badge="Robust" badgeVariant="cyan"    description="Injects follow_redirects=True so tools transparently handle HTTP 301/302 redirects." />
@@ -312,7 +376,7 @@ export default function HomePage() {
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[
-              { n: "01", title: "Paste your API URLs",         desc: "Enter one or more API base URLs, direct spec URLs, or upload local OpenAPI files.",                                              color: "#6366f1" },
+              { n: "01", title: "Paste your API URLs",         desc: "Enter one or more API base URLs or direct OpenAPI spec URLs.",                                              color: "#6366f1" },
               { n: "02", title: "Spec ingestion & analysis",  desc: "MCPer fetches and parses the OpenAPI 3.x spec, extracting all endpoints, parameters, and auth schemes.",                          color: "#8b5cf6" },
               { n: "03", title: "Code generation",            desc: "Jinja2 templates render a complete FastMCP server.py with typed tool functions for every endpoint.",                               color: "#06b6d4" },
               { n: "04", title: "Run & connect",              desc: "Start the server with uv run and add it to Claude Desktop or Codex CLI with one config snippet.",                                 color: "#10b981" },

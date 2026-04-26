@@ -19,13 +19,13 @@ mcp = FastMCP("{{ project_name }}")
 {{ api.prefix | upper }}_BASE_URL = os.environ.get("{{ api.prefix | upper }}_BASE_URL", "{{ api.base_url }}").rstrip("/")
 
 {% if api.auth_type == "bearer" %}
-_{{ api.prefix | upper }}_API_KEY = os.environ.get("{{ api.env_var_name }}", "")
+_{{ api.prefix | upper }}_API_KEY = os.environ.get("{{ api.env_var_name }}", "{{ api.user_api_key | default('') }}")
 
 
 def _{{ api.prefix | lower }}_headers() -> dict:
     return {"Authorization": f"Bearer {_{{ api.prefix | upper }}_API_KEY}"} if _{{ api.prefix | upper }}_API_KEY else {}
 {% elif api.auth_type == "apiKey" %}
-_{{ api.prefix | upper }}_API_KEY = os.environ.get("{{ api.env_var_name }}", "")
+_{{ api.prefix | upper }}_API_KEY = os.environ.get("{{ api.env_var_name }}", "{{ api.user_api_key | default('') }}")
 
 
 def _{{ api.prefix | lower }}_headers() -> dict:
@@ -43,8 +43,16 @@ def _{{ api.prefix | lower }}_headers() -> dict:
         return {"Authorization": f"Basic {creds}"}
     return {}
 {% else %}
+{% if api.user_api_key %}
+_{{ api.prefix | upper }}_API_KEY = os.environ.get("{{ api.env_var_name }}_API_KEY", "{{ api.user_api_key }}")
+
+
+def _{{ api.prefix | lower }}_headers() -> dict:
+    return {"Authorization": f"Bearer {_{{ api.prefix | upper }}_API_KEY}"} if _{{ api.prefix | upper }}_API_KEY else {}
+{% else %}
 def _{{ api.prefix | lower }}_headers() -> dict:
     return {}
+{% endif %}
 {% endif %}
 
 {% endfor %}

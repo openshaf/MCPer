@@ -12,7 +12,9 @@ def {{ name }}(
     body: str | None = None,
 {% endif %}
 ) -> str:
-    """{{ description }}"""
+    """
+    {{ description }}
+    """
     _url = {{ prefix | upper }}_BASE_URL + "{{ path }}"
 {% if path_params %}
     _url = _url.format(

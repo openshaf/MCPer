@@ -54,6 +54,15 @@ Upgraded the architecture to allow ingesting multiple APIs simultaneously into a
 - **Conflict Resolution**: Implemented automatic prefixing for all tools and environment variables (`[api-prefix]_[endpoint_name]`) to prevent naming collisions when combining different APIs (e.g., `petstore_add_pet`, `xkcd_get_info_0_json`).
 - **Template Restructuring**: Rewrote `server.py.j2` and `tool.py.j2` to iterate over all loaded APIs, generating isolated configuration blocks for each API (`BASE_URL` and specific auth helpers) at the top of the file, allowing each tool to reference its respective API's config.
 
+## 🌐 Next.js Frontend Integration
+
+## 🌐 Next.js Frontend Integration
+
+To provide a seamless user experience, a Next.js web interface was integrated to orchestrate the backend Python process. The architecture was recently refactored from a CLI-based child process to a localized client-server model:
+- **FastAPI Backend (`api.py`)**: A local Uvicorn server runs the MCPer generation logic, exposing a `POST /build` REST endpoint.
+- **API Bridge Route**: The Next.js App Router API route (`src/app/api/build/route.ts`) acts as a proxy, forwarding user requests (API URLs or raw spec files) to the local FastAPI server.
+- **Response Handling**: The FastAPI backend performs the generation and returns the generated server path, total endpoint count, and the Claude Desktop configuration snippet as a JSON response, which the React frontend displays.
+
 ---
 
 ## 🚀 Final Usage
