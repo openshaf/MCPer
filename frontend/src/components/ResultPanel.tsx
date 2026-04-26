@@ -29,14 +29,10 @@ export default function ResultPanel({ result, onReset }: Props) {
         background: "rgba(255,107,26,.06)",
         border: "1px solid rgba(255,107,26,.2)",
       }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 22, background: "rgba(255,107,26,.12)",
-        }}>🎉</div>
+
         <div>
           <p style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 15, margin: 0, fontFamily: "'Instrument Sans', sans-serif" }}>
-            MCP Server Generated!
+          MCP Server Generated!
           </p>
           <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3, margin: "3px 0 0", fontFamily: "'Instrument Sans', sans-serif" }}>
             {result.totalEndpoints} endpoint{result.totalEndpoints !== 1 ? "s" : ""} across{" "}
@@ -57,7 +53,7 @@ export default function ResultPanel({ result, onReset }: Props) {
         background: "rgba(217,119,6,.05)", border: "1px solid rgba(217,119,6,.18)",
         display: "flex", gap: 10, alignItems: "flex-start",
       }}>
-        <span style={{ color: "#B45309", flexShrink: 0, marginTop: 1, fontSize: 14 }}>🔑</span>
+
         <div>
           <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, color: "#92400E", fontFamily: "'Instrument Sans', sans-serif" }}>
             Add API keys to the .env file
@@ -86,7 +82,7 @@ export default function ResultPanel({ result, onReset }: Props) {
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,26,.14)"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,26,.06)"; }}
         >
-          🐍 View server.py
+           View server.py
         </button>
         <button
           onClick={() => setViewer("env")}
@@ -102,7 +98,7 @@ export default function ResultPanel({ result, onReset }: Props) {
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(217,119,6,.12)"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(217,119,6,.05)"; }}
         >
-          ⚙️ View .env template
+          View .env template
         </button>
       </div>
 
