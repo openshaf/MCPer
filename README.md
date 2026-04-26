@@ -202,6 +202,63 @@ def get_users():
 - Optional filtering of sensitive endpoints
 - HTTP mode includes origin validation
 
+## 🤝 Assistant Mode (Non-Dev)
+
+MCPer now supports a non-dev assistant flow on the home page:
+
+- User describes what they want in natural language.
+- OpenRouter planning model chooses APIs from your predefined API catalog.
+- MCPer generates a local MCP server and returns a ready-to-run command.
+- A test prompt is returned so the user can quickly validate the agent behavior.
+
+Default planner model:
+
+```text
+openai/gpt-oss-120b:free
+```
+
+Backend environment variables:
+
+```text
+OPENROUTER_API_KEY=...
+OPENROUTER_MODEL=openai/gpt-oss-120b:free
+```
+
+### Supabase secure API key table (required for Assistant Mode)
+
+Run this in Supabase SQL editor to store API keys used by assistant mode builds:
+
+```sql
+CREATE TABLE IF NOT EXISTS public.mcper_api_keys (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    api_name   TEXT NOT NULL UNIQUE,
+    api_key    TEXT NOT NULL,
+    is_active  BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.mcper_api_keys ENABLE ROW LEVEL SECURITY;
+
+-- Keep this table private from regular authenticated clients.
+-- The backend uses the Supabase service role key.
+CREATE POLICY "No direct reads"
+  ON public.mcper_api_keys
+  FOR SELECT
+  USING (false);
+
+CREATE POLICY "No direct writes"
+  ON public.mcper_api_keys
+  FOR INSERT
+  WITH CHECK (false);
+
+CREATE POLICY "No direct updates"
+  ON public.mcper_api_keys
+  FOR UPDATE
+  USING (false)
+  WITH CHECK (false);
+```
+
 ---
 
 ## 🧩 Future Improvements
