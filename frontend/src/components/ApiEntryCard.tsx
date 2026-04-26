@@ -16,166 +16,193 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
   const uid = useId();
   const [showKey, setShowKey] = useState(false);
   const [keyExpanded, setKeyExpanded] = useState(!!entry.apiKey);
+  const [focused, setFocused] = useState(false);
 
   const borderColor =
-    entry.status === "success" ? "rgba(16,185,129,0.35)" :
-    entry.status === "error"   ? "rgba(239,68,68,0.35)"  :
-    "rgba(255,255,255,0.08)";
+    entry.status === "success" ? "#86EFAC" :
+    entry.status === "error"   ? "#FCA5A5" :
+    focused                    ? "var(--accent)" :
+    "var(--border-input)";
 
   return (
     <div
       style={{
-        background: "linear-gradient(135deg,rgba(17,24,39,.85),rgba(13,21,37,.95))",
+        background: "#fff",
         border: `1px solid ${borderColor}`,
-        borderRadius: 16,
-        transition: "border-color .3s",
+        borderRadius: 10,
+        transition: "border-color .2s, box-shadow .2s",
+        boxShadow: focused
+          ? "0 0 0 3px rgba(255,107,26,.10), 0 2px 12px rgba(0,0,0,.06)"
+          : entry.status === "success"
+          ? "0 0 0 3px rgba(16,185,129,.08)"
+          : entry.status === "error"
+          ? "0 0 0 3px rgba(239,68,68,.08)"
+          : "0 2px 8px rgba(0,0,0,.04)",
+        overflow: "hidden",
       }}
     >
-      {/* ── Header ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px 10px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center",
-              justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff",
-              background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
-              boxShadow: "0 2px 8px rgba(99,102,241,.4)",
-              flexShrink: 0,
-            }}
-          >
+      {/* ── Main input row ── */}
+      <div style={{ display: "flex", alignItems: "center", padding: "6px 6px 6px 18px", gap: 8 }}>
+        {/* Index number */}
+        {canRemove && (
+          <span style={{
+            fontSize: 12, fontWeight: 700, color: "var(--text-muted)",
+            fontFamily: "'Instrument Sans', sans-serif",
+            flexShrink: 0, minWidth: 18,
+          }}>
             {index + 1}
-          </div>
-          <input
-            id={`${uid}-name`}
-            type="text"
-            value={entry.name ?? ""}
-            onChange={(e) => onUpdate(entry.id, { name: e.target.value })}
-            placeholder="API name (optional)"
-            style={{
-              background: "transparent", border: "none", outline: "none",
-              color: "rgba(255,255,255,.65)", fontSize: 13, fontWeight: 500,
-              width: 160, fontFamily: "inherit",
-            }}
-          />
-          {entry.status === "success" && entry.apiTitle && (
-            <span className="badge badge-emerald" style={{ fontSize: 10 }}>✓ {entry.apiTitle}</span>
-          )}
-        </div>
+          </span>
+        )}
+
+        {/* URL input */}
+        <input
+          id={`${uid}-value`}
+          type="url"
+          value={entry.value}
+          onChange={(e) => onUpdate(entry.id, { value: e.target.value, status: "idle", error: undefined })}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="API Base URL or Direct Spec URL"
+          disabled={entry.isVerifying}
+          style={{
+            flex: 1,
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            fontFamily: "'Instrument Sans', sans-serif",
+            fontSize: 16,
+            color: "var(--text-primary)",
+            padding: "14px 0",
+            opacity: entry.isVerifying ? 0.55 : 1,
+          }}
+        />
+
+        {/* Status badge */}
+        {entry.status === "success" && entry.apiTitle && (
+          <span style={{
+            fontSize: 11, fontWeight: 700, color: "#059669",
+            background: "rgba(16,185,129,.08)",
+            border: "1px solid rgba(16,185,129,.2)",
+            borderRadius: 6, padding: "3px 8px",
+            fontFamily: "'Instrument Sans', sans-serif",
+            letterSpacing: ".04em", flexShrink: 0,
+          }}>
+            ✓ {entry.apiTitle}
+          </span>
+        )}
+
+        {/* Verify button */}
+        <button
+          onClick={() => onVerify(entry.id)}
+          disabled={entry.isVerifying || !entry.value.trim()}
+          aria-label="Verify API"
+          style={{
+            width: 44, height: 44, borderRadius: 8, border: "none",
+            cursor: entry.isVerifying || !entry.value.trim() ? "not-allowed" : "pointer",
+            background:
+              entry.status === "success" ? "rgba(16,185,129,.12)" :
+              entry.status === "error"   ? "rgba(239,68,68,.10)" :
+              "var(--accent)",
+            color:
+              entry.status === "success" ? "#059669" :
+              entry.status === "error"   ? "#dc2626" :
+              "#fff",
+            fontSize: entry.isVerifying ? 10 : 18,
+            fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+            transition: "all .18s",
+            opacity: !entry.value.trim() && !entry.isVerifying ? 0.35 : 1,
+          }}
+        >
+          {entry.isVerifying ? "…" : entry.status === "success" ? "✓" : entry.status === "error" ? "!" : "→"}
+        </button>
+
+        {/* Remove button */}
         {canRemove && (
           <button
             onClick={() => onRemove(entry.id)}
             aria-label={`Remove API ${index + 1}`}
             style={{
-              width: 28, height: 28, borderRadius: 8, border: "none", cursor: "pointer",
-              background: "transparent", color: "rgba(255,255,255,.25)",
+              width: 36, height: 36, borderRadius: 6, border: "none", cursor: "pointer",
+              background: "transparent", color: "var(--text-muted)",
               display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
-              transition: "color .2s, background .2s",
+              transition: "color .2s, background .2s", flexShrink: 0,
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#f87171"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,.1)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.25)"; (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#dc2626"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,.06)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)"; (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
           >
             ✕
           </button>
         )}
       </div>
 
-      {/* ── Input area ── */}
-      <div style={{ padding: "10px 20px 20px" }}>
-        <div style={{ position: "relative", display: "flex", gap: 10 }}>
+      {/* ── Footer row ── */}
+      <div style={{ padding: "0 18px 12px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        {/* API key toggle */}
+        {!keyExpanded ? (
+          <button
+            id={`${uid}-add-key`}
+            onClick={() => setKeyExpanded(true)}
+            style={{
+              background: "transparent", border: "none", cursor: "pointer",
+              color: "var(--text-muted)", fontSize: 12,
+              fontFamily: "'Instrument Sans', sans-serif",
+              display: "flex", alignItems: "center", gap: 4, padding: 0,
+              transition: "color .2s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+          >
+            <span style={{ fontSize: 13 }}>🔑</span> Add API key
+          </button>
+        ) : (
           <div style={{ position: "relative", flex: 1 }}>
             <input
-              id={`${uid}-value`}
-              type="url"
-              value={entry.value}
-              onChange={(e) => onUpdate(entry.id, { value: e.target.value, status: "idle", error: undefined })}
-              placeholder="API Base URL or Direct Spec URL"
-              className="input-glow font-mono-custom"
-              disabled={entry.isVerifying}
+              id={`${uid}-apikey`}
+              type={showKey ? "text" : "password"}
+              value={entry.apiKey ?? ""}
+              onChange={(e) => onUpdate(entry.id, { apiKey: e.target.value })}
+              placeholder="Paste your API key…"
+              autoComplete="off"
               style={{
-                width: "100%", padding: "12px 16px", borderRadius: 12,
-                background: "rgba(0,0,0,.4)", border: "1px solid rgba(255,255,255,.08)",
-                color: "rgba(255,255,255,.8)", fontSize: 13, fontFamily: "inherit",
-                transition: "border-color .2s",
-                opacity: entry.isVerifying ? 0.6 : 1,
+                width: "100%", padding: "9px 40px 9px 12px", borderRadius: 7,
+                border: "1px solid var(--border-input)",
+                background: "#fafafa",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 12, color: "var(--text-primary)", outline: "none",
               }}
             />
-          </div>
-          <button
-            onClick={() => onVerify(entry.id)}
-            disabled={entry.isVerifying || !entry.value.trim()}
-            style={{
-              padding: "0 16px", borderRadius: 12, border: "none", cursor: entry.isVerifying || !entry.value.trim() ? "not-allowed" : "pointer",
-              background: entry.status === "success" ? "rgba(16,185,129,.15)" : entry.status === "error" ? "rgba(239,68,68,.15)" : "rgba(99,102,241,.15)",
-              color: entry.status === "success" ? "#10b981" : entry.status === "error" ? "#ef4444" : "#818cf8",
-              fontWeight: 600, fontSize: 13, transition: "all .2s",
-              display: "flex", alignItems: "center", justifyContent: "center", minWidth: 80,
-              border: `1px solid ${entry.status === "success" ? "rgba(16,185,129,.3)" : entry.status === "error" ? "rgba(239,68,68,.3)" : "rgba(99,102,241,.3)"}`,
-            }}
-          >
-            {entry.isVerifying ? "..." : entry.status === "success" ? "Verified" : "Verify"}
-          </button>
-        </div>
-        {/* ── API Key (optional) ── */}
-        <div style={{ marginTop: 8 }}>
-          {!keyExpanded ? (
             <button
-              id={`${uid}-add-key`}
-              onClick={() => setKeyExpanded(true)}
+              onClick={() => setShowKey(v => !v)}
               style={{
+                position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
                 background: "transparent", border: "none", cursor: "pointer",
-                color: "rgba(255,255,255,.28)", fontSize: 12, fontFamily: "inherit",
-                display: "flex", alignItems: "center", gap: 5, padding: 0,
-                transition: "color .2s",
+                color: "var(--text-muted)", fontSize: 13, lineHeight: 1, padding: 4,
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(165,180,252,.8)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.28)")}
+              aria-label={showKey ? "Hide API key" : "Show API key"}
             >
-              <span style={{ fontSize: 14 }}>🔑</span> Add API key (optional)
+              {showKey ? "🙈" : "👁"}
             </button>
-          ) : (
-            <div style={{ position: "relative", marginTop: 4 }}>
-              <input
-                id={`${uid}-apikey`}
-                type={showKey ? "text" : "password"}
-                value={entry.apiKey ?? ""}
-                onChange={(e) => onUpdate(entry.id, { apiKey: e.target.value })}
-                placeholder="Paste your API key…"
-                autoComplete="off"
-                className="input-glow font-mono-custom"
-                style={{
-                  width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10,
-                  background: "rgba(99,102,241,.07)", border: "1px solid rgba(99,102,241,.25)",
-                  color: "rgba(255,255,255,.75)", fontSize: 13, fontFamily: "monospace",
-                  transition: "border-color .2s",
-                }}
-              />
-              {/* toggle visibility */}
-              <button
-                onClick={() => setShowKey(v => !v)}
-                style={{
-                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                  background: "transparent", border: "none", cursor: "pointer",
-                  color: "rgba(255,255,255,.3)", fontSize: 14, lineHeight: 1, padding: 4,
-                }}
-                aria-label={showKey ? "Hide API key" : "Show API key"}
-              >
-                {showKey ? "🙈" : "👁"}
-              </button>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
+        {/* Status messages */}
         {entry.error && (
-          <p style={{ marginTop: 8, fontSize: 12, color: "#f87171", display: "flex", gap: 5, alignItems: "flex-start" }}>
-            <span>⚠</span>{entry.error}
-          </p>
+          <span style={{ fontSize: 12, color: "#dc2626", fontFamily: "'Instrument Sans', sans-serif", display: "flex", alignItems: "center", gap: 4 }}>
+            ⚠ {entry.error}
+          </span>
         )}
         {entry.status === "success" && entry.endpointCount !== undefined && (
-          <p style={{ marginTop: 8, fontSize: 12, color: "#6ee7b7", display: "flex", gap: 5 }}>
-            <span>✓</span>{entry.endpointCount} endpoint{entry.endpointCount !== 1 ? "s" : ""} found
-          </p>
+          <span style={{ fontSize: 12, color: "#059669", fontFamily: "'Instrument Sans', sans-serif" }}>
+            ✓ {entry.endpointCount} endpoint{entry.endpointCount !== 1 ? "s" : ""} found
+          </span>
         )}
       </div>
     </div>
   );
+}
+
+function entries_gt_1(index: number) {
+  return index >= 0;
 }

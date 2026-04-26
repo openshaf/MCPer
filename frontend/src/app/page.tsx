@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import ApiEntryCard from "@/components/ApiEntryCard";
 import BuildProgress from "@/components/BuildProgress";
 import ResultPanel from "@/components/ResultPanel";
-import FeatureCard from "@/components/FeatureCard";
-import { ApiEntry, BuildStep, BuildResult, InputMode } from "@/types";
+import { ApiEntry, BuildStep, BuildResult } from "@/types";
 
 /* ── ID generation ── */
 let _counter = 0;
@@ -176,246 +175,149 @@ export default function HomePage() {
 
   /* ── Render ── */
   return (
-    <div style={{ minHeight: "100vh", position: "relative", background: "#070b14" }}>
-      {/* Background orbs */}
-      <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", width: 600, height: 600, top: -200, left: -200, borderRadius: "50%", background: "radial-gradient(circle,rgba(99,102,241,.28) 0%,transparent 70%)", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", width: 450, height: 450, top: "35%", right: -150, borderRadius: "50%", background: "radial-gradient(circle,rgba(139,92,246,.2) 0%,transparent 70%)", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", width: 400, height: 400, bottom: -100, left: "40%", borderRadius: "50%", background: "radial-gradient(circle,rgba(6,182,212,.12) 0%,transparent 70%)", filter: "blur(80px)" }} />
-      </div>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        {/* ── Nav ── */}
-        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 40px", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", boxShadow: "0 4px 16px rgba(99,102,241,.45)", flexShrink: 0 }}>
-              M
-            </div>
-            <span style={{ fontWeight: 800, fontSize: 16, color: "#fff", letterSpacing: "-.02em" }}>MCPer</span>
-            <span className="badge badge-indigo" style={{ fontSize: 9 }}>beta</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <a href="https://github.com/openshaf/MCPer" target="_blank" rel="noopener noreferrer" id="github-link"
-              style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,.38)", fontSize: 13, textDecoration: "none", transition: "color .2s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,.75)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.38)")}
-            >
-              <GithubIcon />
-              GitHub
-            </a>
-            <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" id="mcp-docs-link"
-              style={{ color: "rgba(255,255,255,.38)", fontSize: 13, textDecoration: "none", transition: "color .2s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,.75)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.38)")}
-            >
-              MCP Docs
-            </a>
-          </div>
-        </nav>
+      {/* ── Main content ── */}
+      <div style={{ width: "100%", maxWidth: 760, margin: "0 auto", padding: "40px 32px 48px", textAlign: "center" }}>
 
-        {/* ── Hero ── */}
-        <section style={{ textAlign: "center", padding: "64px 24px 48px", maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 24, padding: "5px 14px", borderRadius: 999, background: "rgba(99,102,241,.12)", border: "1px solid rgba(99,102,241,.25)", fontSize: 11, fontWeight: 700, color: "#a5b4fc", letterSpacing: ".06em", textTransform: "uppercase" }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#818cf8", animation: "pulse 2s ease-in-out infinite" }} />
-            OpenAPI → FastMCP in seconds
-          </div>
-          <h1 style={{ fontSize: "clamp(2.2rem,6vw,4rem)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-.03em", color: "#fff", margin: "0 0 20px" }}>
-            Turn any API into<br />
-            <span className="gradient-text">an MCP server</span>
-          </h1>
-          <p style={{ fontSize: "clamp(.9rem,2vw,1.1rem)", color: "rgba(255,255,255,.38)", maxWidth: 560, margin: "0 auto", lineHeight: 1.7 }}>
-            Paste your API URLs — MCPer auto-discovers the OpenAPI spec, extracts every endpoint, and generates a plug-and-play{" "}
-            <span style={{ color: "#a5b4fc", fontWeight: 500 }}>FastMCP server</span>{" "}
-            ready for Claude, Codex, or any MCP-compatible agent.
-          </p>
-        </section>
-
-        {/* ── Builder card ── */}
-        <section style={{ padding: "0 16px 80px", maxWidth: 680, margin: "0 auto" }}>
-          <div
+        {/* Hero heading — badge overlaps the W */}
+        <div
+          className="animate-fade-in-up"
+          style={{ position: "relative", display: "inline-block", marginBottom: 20 }}
+        >
+          {/* Badge — floated over the W */}
+          <span
+            className="badge-accent"
             style={{
-              borderRadius: 24, padding: "32px 28px",
-              background: "linear-gradient(145deg,rgba(17,24,39,.97),rgba(13,21,37,.99))",
-              border: "1px solid rgba(99,102,241,.18)",
-              boxShadow: "0 0 0 1px rgba(99,102,241,.07), 0 40px 100px rgba(0,0,0,.65), 0 0 80px rgba(99,102,241,.05)",
+              position: "absolute",
+              top: "-5px",
+              left: "-8px",
+              transform: "rotate(-8deg)",
+              zIndex: 2,
+              fontFamily: "'Special Elite', cursive",
+              fontSize: 22,
+              letterSpacing: "2px",
             }}
           >
-            {result ? (
-              <ResultPanel result={result} onReset={handleReset} />
-            ) : (
-              <>
-                {/* Form header */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
-                  <div>
-                    <h2 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 }}>Your APIs</h2>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,.28)", marginTop: 4 }}>
-                      Add one or more APIs to combine into a single MCP server
-                    </p>
-                  </div>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,.18)", fontFamily: "monospace", flexShrink: 0 }}>
-                    {entries.length} / 8
-                  </span>
-                </div>
+            toolRelay
+          </span>
 
-                {/* Progress */}
-                {buildStep !== "idle" && buildStep !== "error" && (
-                  <div style={{ marginBottom: 24 }}>
-                    <BuildProgress step={buildStep} totalApis={entries.length} />
-                  </div>
-                )}
+          <h1
+            className="delay-100"
+            style={{
+              fontFamily: "'Instrument Serif', Georgia, serif",
+              fontSize: "clamp(3rem, 8vw, 5.5rem)",
+              fontWeight: 400,
+              lineHeight: 1.15,
+              letterSpacing: "-0.01em",
+              color: "var(--text-primary)",
+              margin: 0,
+            }}
+          >
+            What are you{" "}
+            <em style={{ fontStyle: "italic" }}>building?</em>
+          </h1>
+        </div>
 
-                {/* Global error */}
-                {globalErr && (
-                  <div style={{ marginBottom: 20, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                    <span style={{ color: "#f87171", flexShrink: 0 }}>⚠</span>
-                    <span style={{ fontSize: 13, color: "#fca5a5" }}>{globalErr}</span>
-                  </div>
-                )}
+        {/* Sub-copy */}
+        <p
+          className="animate-fade-in-up delay-200"
+          style={{
+            fontFamily: "'Instrument Sans', sans-serif",
+            fontSize: "clamp(1rem, 2.5vw, 1.15rem)",
+            color: "var(--text-secondary)",
+            maxWidth: 520,
+            margin: "0 auto 32px",
+            lineHeight: 1.7,
+          }}
+        >
+          Describe your AI agent&rsquo;s purpose, and we&rsquo;ll configure the perfect set of MCP servers for{" "}
+          <em style={{ fontStyle: "italic", color: "var(--text-primary)" }}>it</em>.
+        </p>
 
-                {/* API entries */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {entries.map((entry, i) => (
-                    <ApiEntryCard
-                      key={entry.id}
-                      entry={entry}
-                      index={i}
-                      onUpdate={updateEntry}
-                      onRemove={removeEntry}
-                      onVerify={handleVerify}
-                      canRemove={entries.length > 1}
-                    />
-                  ))}
-                </div>
-
-                {/* Add API */}
-                {entries.length < 8 && (
-                  <button
-                    id="add-api-button"
-                    onClick={addEntry}
-                    disabled={isBuilding}
-                    style={{
-                      width: "100%", marginTop: 12, padding: "12px 0", borderRadius: 12, cursor: isBuilding ? "not-allowed" : "pointer",
-                      background: "transparent", border: "2px dashed rgba(255,255,255,.1)", color: "rgba(255,255,255,.28)",
-                      fontSize: 13, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center",
-                      gap: 8, transition: "all .2s", opacity: isBuilding ? .45 : 1,
-                    }}
-                    onMouseEnter={e => { if (!isBuilding) { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(99,102,241,.4)"; (e.currentTarget as HTMLButtonElement).style.color = "#a5b4fc"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(99,102,241,.05)"; } }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,.1)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,.28)"; (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
-                  >
-                    <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
-                    Add another API
-                  </button>
-                )}
-
-                {/* Divider */}
-                <div style={{ margin: "24px 0", borderTop: "1px solid rgba(255,255,255,.05)" }} />
-
-                {/* Multi-API note */}
-                <div style={{ marginBottom: 20, padding: "12px 16px", borderRadius: 12, background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.15)", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <span style={{ color: "#fbbf24", flexShrink: 0, marginTop: 1 }}>ℹ</span>
-                  <p style={{ fontSize: 12, color: "rgba(253,211,77,.6)", lineHeight: 1.6, margin: 0 }}>
-                    <strong style={{ color: "rgba(253,211,77,.85)", fontWeight: 700 }}>Multi-API composition</strong> is coming soon.
-                    Currently the CLI processes one API at a time. The combined-server feature will be wired in when the backend supports it.
-                  </p>
-                </div>
-
-                {/* Build button */}
-                <button
-                  id="build-mcp-button"
-                  onClick={handleBuild}
-                  disabled={isBuilding}
-                  className="btn-lift"
-                  style={{
-                    width: "100%", padding: "15px 0", borderRadius: 16, border: "none", cursor: isBuilding ? "not-allowed" : "pointer",
-                    fontFamily: "inherit", fontSize: 15, fontWeight: 700, color: "#fff",
-                    background: isBuilding ? "linear-gradient(135deg,#4338ca,#6d28d9)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                    boxShadow: isBuilding ? "none" : "0 6px 28px rgba(99,102,241,.45)",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                    opacity: isBuilding ? .7 : 1,
-                  }}
-                >
-                  {isBuilding ? (
-                    <>
-                      <SpinIcon />
-                      Building MCP server…
-                    </>
-                  ) : (
-                    <>
-                      <span>⚡</span>
-                      Generate MCP Server
-                    </>
-                  )}
-                </button>
-              </>
-            )}
+        {/* ── Search input ── */}
+        {result ? (
+          <div className="animate-fade-in-up result-card" style={{ textAlign: "left" }}>
+            <ResultPanel result={result} onReset={handleReset} />
           </div>
-        </section>
-
-        {/* ── Features grid ── */}
-        <section style={{ padding: "0 24px 80px", maxWidth: 1100, margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", fontSize: "clamp(1.5rem,3vw,2rem)", fontWeight: 800, color: "#fff", marginBottom: 8 }}>
-            Everything you need
-          </h2>
-          <p style={{ textAlign: "center", fontSize: 13, color: "rgba(255,255,255,.28)", marginBottom: 40 }}>
-            MCPer handles the entire pipeline from spec to running server
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14 }}>
-            <FeatureCard icon="🔍" title="Auto-discovery"    badge="Smart"  badgeVariant="indigo"  description="Just paste the API base URL — MCPer probes common paths to find the OpenAPI spec automatically." />
-            <FeatureCard icon="📥" title="Smart Input Routing"                                      description="Simply paste any link. MCPer instantly detects whether it's a direct spec URL or requires API auto-discovery." />
-            <FeatureCard icon="🔒" title="Auth Detection"    badge="Secure" badgeVariant="emerald" description="Automatically detects Bearer, API Key, and Basic auth schemes, mapping them to environment variables." />
-            <FeatureCard icon="⚡" title="FastMCP Generation"                                       description="Generates fully type-annotated @mcp.tool() functions using Jinja2 templates and FastMCP." />
-            <FeatureCard icon="🔄" title="Redirect Handling" badge="Robust" badgeVariant="cyan"    description="Injects follow_redirects=True so tools transparently handle HTTP 301/302 redirects." />
-            <FeatureCard icon="🤖" title="Agent Ready" badge="Coming: Multi-API" badgeVariant="amber" description="Generated servers plug directly into Claude Desktop, Codex CLI, or the MCP Inspector." />
-          </div>
-        </section>
-
-        {/* ── How it works ── */}
-        <section style={{ padding: "0 24px 100px", maxWidth: 760, margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", fontSize: "clamp(1.5rem,3vw,2rem)", fontWeight: 800, color: "#fff", marginBottom: 40 }}>
-            How it works
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {[
-              { n: "01", title: "Paste your API URLs",         desc: "Enter one or more API base URLs or direct OpenAPI spec URLs.",                                              color: "#6366f1" },
-              { n: "02", title: "Spec ingestion & analysis",  desc: "MCPer fetches and parses the OpenAPI 3.x spec, extracting all endpoints, parameters, and auth schemes.",                          color: "#8b5cf6" },
-              { n: "03", title: "Code generation",            desc: "Jinja2 templates render a complete FastMCP server.py with typed tool functions for every endpoint.",                               color: "#06b6d4" },
-              { n: "04", title: "Run & connect",              desc: "Start the server with uv run and add it to Claude Desktop or Codex CLI with one config snippet.",                                 color: "#10b981" },
-            ].map(({ n, title, desc, color }) => (
-              <div key={n} style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-                <div style={{ width: 42, height: 42, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color, background: `${color}18`, border: `1px solid ${color}44` }}>
-                  {n}
-                </div>
-                <div style={{ flex: 1, padding: "14px 18px", borderRadius: 14, background: "rgba(17,24,39,.75)", border: "1px solid rgba(255,255,255,.06)" }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,.9)", margin: "0 0 6px" }}>{title}</h3>
-                  <p style={{ fontSize: 13, color: "rgba(255,255,255,.38)", lineHeight: 1.6, margin: 0 }}>{desc}</p>
-                </div>
+        ) : (
+          <div className="animate-fade-in-up delay-300">
+            {/* Progress */}
+            {buildStep !== "idle" && buildStep !== "error" && (
+              <div style={{ marginBottom: 20 }}>
+                <BuildProgress step={buildStep} totalApis={entries.length} />
               </div>
-            ))}
-          </div>
-        </section>
+            )}
 
-        {/* ── Footer ── */}
-        <footer style={{ borderTop: "1px solid rgba(255,255,255,.05)", padding: "28px 40px" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 24, height: 24, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: "#fff", background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>M</div>
-              <span style={{ color: "rgba(255,255,255,.3)", fontSize: 13 }}>MCPer</span>
+            {/* Global error */}
+            {globalErr && (
+              <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 8, background: "rgba(239,68,68,.06)", border: "1px solid rgba(239,68,68,.15)", display: "flex", gap: 10, alignItems: "flex-start", textAlign: "left" }}>
+                <span style={{ color: "#dc2626", flexShrink: 0 }}>⚠</span>
+                <span style={{ fontSize: 13, color: "#b91c1c", fontFamily: "'Instrument Sans', sans-serif" }}>{globalErr}</span>
+              </div>
+            )}
+
+            {/* API entries */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 10 }}>
+              {entries.map((entry, i) => (
+                <ApiEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  index={i}
+                  onUpdate={updateEntry}
+                  onRemove={removeEntry}
+                  onVerify={handleVerify}
+                  canRemove={entries.length > 1}
+                />
+              ))}
             </div>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,.18)", textAlign: "center", margin: 0 }}>
-              Turn any OpenAPI spec into a FastMCP server — no boilerplate, just plug and play.
-            </p>
-            <a href="https://github.com/openshaf/MCPer" target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 12, color: "rgba(255,255,255,.28)", textDecoration: "none", transition: "color .2s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,.65)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.28)")}
+
+            {/* Add API */}
+            {entries.length < 8 && (
+              <button
+                id="add-api-button"
+                onClick={addEntry}
+                disabled={isBuilding}
+                style={{
+                  width: "100%", marginBottom: 24, padding: "13px 0", borderRadius: 8, cursor: isBuilding ? "not-allowed" : "pointer",
+                  background: "transparent", border: "1.5px dashed var(--border)", color: "var(--text-muted)",
+                  fontSize: 13, fontWeight: 600, fontFamily: "'Instrument Sans', sans-serif",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  transition: "all .2s", opacity: isBuilding ? .45 : 1,
+                }}
+                onMouseEnter={e => { if (!isBuilding) { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--accent)"; } }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)"; }}
+              >
+                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                Add another API
+              </button>
+            )}
+
+            {/* Generate button */}
+            <button
+              id="build-mcp-button"
+              onClick={handleBuild}
+              disabled={isBuilding}
+              className="btn-primary"
+              style={{ width: "100%", padding: "18px 0", borderRadius: 10, fontSize: 16 }}
             >
-              View on GitHub →
-            </a>
+              {isBuilding ? (
+                <>
+                  <SpinIcon />
+                  Building MCP server…
+                </>
+              ) : (
+                <>
+                  Generate MCP Server
+                  <span style={{ fontSize: 18 }}>→</span>
+                </>
+              )}
+            </button>
           </div>
-        </footer>
+        )}
       </div>
 
-      {/* Inline keyframes for pulse dot */}
+      {/* Inline keyframes */}
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
         @keyframes spin   { to{transform:rotate(360deg)} }
@@ -423,6 +325,7 @@ export default function HomePage() {
     </div>
   );
 }
+
 
 function SpinIcon() {
   return (
