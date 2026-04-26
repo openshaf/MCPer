@@ -21,6 +21,7 @@ export default function HomePage() {
   const [buildStep, setBuildStep] = useState<BuildStep>("idle");
   const [result, setResult]       = useState<BuildResult | null>(null);
   const [globalErr, setGlobalErr] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const isBuilding = ["loading", "analyzing", "generating"].includes(buildStep);
 
   /* ── Entry management ── */
@@ -101,6 +102,7 @@ export default function HomePage() {
     setGlobalErr(null);
     setResult(null);
     if (!validate()) return;
+    setSubmitted(true);
 
     // Verify any idle entries automatically
     const unverified = entries.filter(e => e.status === "idle");
@@ -167,21 +169,69 @@ export default function HomePage() {
     setBuildStep("idle");
     setResult(null);
     setGlobalErr(null);
+    setSubmitted(false);
   };
 
   /* ── Render ── */
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
+      {/* ── Back button (top-left, appears when submitted) ── */}
+      <button
+        onClick={handleReset}
+        aria-label="Go back"
+        style={{
+          position: "fixed",
+          top: 24,
+          left: 28,
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          gap: 7,
+          background: "transparent",
+          border: "none",
+          cursor: submitted ? "pointer" : "default",
+          padding: "6px 10px 6px 6px",
+          borderRadius: 8,
+          opacity: submitted ? 1 : 0,
+          transform: submitted ? "translateX(0)" : "translateX(-16px)",
+          transition: "opacity 0.5s ease 0.4s, transform 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.4s, background 0.15s",
+          pointerEvents: submitted ? "auto" : "none",
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,.06)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M5 12l7-7M5 12l7 7" />
+        </svg>
+        <span style={{
+          fontFamily: "'Instrument Sans', sans-serif",
+          fontSize: 14,
+          fontWeight: 600,
+          color: "var(--text-primary)",
+          letterSpacing: ".01em",
+        }}>
+          Back
+        </span>
+      </button>
+
       {/* ── Main content ── */}
       <div style={{ width: "100%", maxWidth: 760, margin: "0 auto", padding: "40px 32px 48px", textAlign: "center" }}>
 
-        {/* Hero heading — badge overlaps the W */}
+        {/* Hero heading — badge overlaps the W, fades out on submit */}
         <div
           className="animate-fade-in-up"
-          style={{ position: "relative", display: "inline-block", marginBottom: 20 }}
+          style={{
+            position: "relative",
+            display: "inline-block",
+            marginBottom: 20,
+            opacity: submitted ? 0 : 1,
+            transform: submitted ? "translateY(-60px)" : "translateY(0)",
+            transition: "opacity 0.85s cubic-bezier(0.4,0,0.2,1), transform 0.85s cubic-bezier(0.4,0,0.2,1)",
+            pointerEvents: submitted ? "none" : "auto",
+          }}
         >
-          {/* Badge — floated over the W */}
+          {/* Badge — floated over the W, also fades with the heading */}
           <span
             className="badge-accent"
             style={{
@@ -199,7 +249,6 @@ export default function HomePage() {
           </span>
 
           <h1
-            className="delay-100"
             style={{
               fontFamily: "'Instrument Serif', Georgia, serif",
               fontSize: "clamp(3rem, 8vw, 5.5rem)",
@@ -215,9 +264,8 @@ export default function HomePage() {
           </h1>
         </div>
 
-        {/* Sub-copy */}
+        {/* Sub-copy — slight delay so it chases the heading out */}
         <p
-          className="animate-fade-in-up delay-200"
           style={{
             fontFamily: "'Instrument Sans', sans-serif",
             fontSize: "clamp(1rem, 2.5vw, 1.15rem)",
@@ -225,19 +273,30 @@ export default function HomePage() {
             maxWidth: 520,
             margin: "0 auto 32px",
             lineHeight: 1.7,
+            opacity: submitted ? 0 : 1,
+            transform: submitted ? "translateY(-48px)" : "translateY(0)",
+            transition: "opacity 0.85s cubic-bezier(0.4,0,0.2,1) 0.12s, transform 0.85s cubic-bezier(0.4,0,0.2,1) 0.12s",
+            pointerEvents: submitted ? "none" : "auto",
           }}
         >
           Describe your AI agent&rsquo;s purpose, and we&rsquo;ll configure the perfect set of MCP servers for{" "}
           <em style={{ fontStyle: "italic", color: "var(--text-primary)" }}>it</em>.
         </p>
 
-        {/* ── Search input ── */}
+        {/* ── Form / Result ── */}
         {result ? (
           <div className="animate-fade-in-up result-card" style={{ textAlign: "left" }}>
             <ResultPanel result={result} onReset={handleReset} />
           </div>
         ) : (
-          <div className="animate-fade-in-up delay-300">
+          <div
+            style={{
+              opacity: submitted ? 0 : 1,
+              transform: submitted ? "translateY(-36px)" : "translateY(0)",
+              transition: "opacity 0.85s cubic-bezier(0.4,0,0.2,1) 0.25s, transform 0.85s cubic-bezier(0.4,0,0.2,1) 0.25s",
+              pointerEvents: submitted ? "none" : "auto",
+            }}
+          >
             {/* Progress */}
             {buildStep !== "idle" && buildStep !== "error" && (
               <div style={{ marginBottom: 20 }}>

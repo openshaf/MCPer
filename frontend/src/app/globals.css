@@ -115,6 +115,9 @@ body {
   border-radius: 12px;
   padding: 20px 24px;
   box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  text-align: left;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 /* ── Legacy gradient-text (keep for any existing usage) ────────── */
