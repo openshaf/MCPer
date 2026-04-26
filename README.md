@@ -87,7 +87,8 @@ cd MCPer
 ### Install Python dependencies
 
 ```bash
-uv sync
+git clone https://github.com/openshaf/MCPer.git
+cd custom-mcp-builder
 ```
 
 ### Run via CLI
@@ -174,13 +175,13 @@ npx @modelcontextprotocol/inspector uv run -q --directory "/path/to/generated/my
 
 ## Features
 
-| Feature | Details |
-|---|---|
-| Auto-discovery | Probes common spec paths (`/openapi.json`, `/swagger.json`, etc.) from a base URL |
-| Auth detection | Detects Bearer, API Key, and Basic auth; maps credentials to environment variables |
-| Redirect handling | Generated `httpx` calls include `follow_redirects=True` |
-| Type-annotated output | All tool functions are fully typed and compatible with FastMCP |
-| Relative server URLs | Constructs absolute URLs from specs that use relative paths in the `servers` array |
+| Feature               | Details                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| Auto-discovery        | Probes common spec paths (`/openapi.json`, `/swagger.json`, etc.) from a base URL  |
+| Auth detection        | Detects Bearer, API Key, and Basic auth; maps credentials to environment variables |
+| Redirect handling     | Generated `httpx` calls include `follow_redirects=True`                            |
+| Type-annotated output | All tool functions are fully typed and compatible with FastMCP                     |
+| Relative server URLs  | Constructs absolute URLs from specs that use relative paths in the `servers` array |
 
 ---
 
