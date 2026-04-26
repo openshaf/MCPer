@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import ApiEntryCard from "@/components/ApiEntryCard";
 import BuildProgress from "@/components/BuildProgress";
 import ResultPanel from "@/components/ResultPanel";
 import FeatureCard from "@/components/FeatureCard";
-import { ApiEntry, BuildStep, BuildResult, InputMode } from "@/types";
+import { ApiEntry, BuildStep, BuildResult, InputMode, ApiTemplate } from "@/types";
 
 /* ── ID generation ── */
 let _counter = 0;
@@ -26,7 +26,17 @@ export default function HomePage() {
   const [buildStep, setBuildStep] = useState<BuildStep>("idle");
   const [result, setResult]       = useState<BuildResult | null>(null);
   const [globalErr, setGlobalErr] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<ApiTemplate[]>([]);
   const isBuilding = ["loading", "analyzing", "generating"].includes(buildStep);
+
+  useEffect(() => {
+    fetch("/api/templates")
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setTemplates(data);
+      })
+      .catch(console.error);
+  }, []);
 
   /* ── Entry management ── */
   const addEntry = () => {
@@ -283,6 +293,7 @@ export default function HomePage() {
                       onRemove={removeEntry}
                       onVerify={handleVerify}
                       canRemove={entries.length > 1}
+                      templates={templates}
                     />
                   ))}
                 </div>

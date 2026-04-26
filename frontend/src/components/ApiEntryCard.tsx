@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ApiEntry } from "@/types";
+import { ApiEntry, ApiTemplate } from "@/types";
 
 interface Props {
   entry: ApiEntry;
@@ -10,9 +10,10 @@ interface Props {
   onRemove: (id: string) => void;
   onVerify: (id: string) => void;
   canRemove: boolean;
+  templates?: ApiTemplate[];
 }
 
-export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerify, canRemove }: Props) {
+export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerify, canRemove, templates = [] }: Props) {
   const uid = useId();
   const [showKey, setShowKey] = useState(false);
   const [keyExpanded, setKeyExpanded] = useState(!!entry.apiKey);
@@ -82,15 +83,21 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
       {/* ── Input area ── */}
       <div style={{ padding: "10px 20px 20px" }}>
         <div style={{ position: "relative", display: "flex", gap: 10 }}>
-          <div style={{ position: "relative", flex: 1 }}>
-            <input
-              id={`${uid}-value`}
-              type="url"
-              value={entry.value}
-              onChange={(e) => onUpdate(entry.id, { value: e.target.value, status: "idle", error: undefined })}
-              placeholder="API Base URL or Direct Spec URL"
+          <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+            <select
+              value={entry.templateId || "custom"}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "custom") {
+                  onUpdate(entry.id, { templateId: undefined, value: "", name: "", error: undefined, status: "idle" });
+                } else {
+                  const t = templates.find(t => t.id === val);
+                  if (t) {
+                    onUpdate(entry.id, { templateId: t.id, value: t.url, name: t.name, error: undefined, status: "idle" });
+                  }
+                }
+              }}
               className="input-glow font-mono-custom"
-              disabled={entry.isVerifying}
               style={{
                 width: "100%", padding: "12px 16px", borderRadius: 12,
                 background: "rgba(0,0,0,.4)", border: "1px solid rgba(255,255,255,.08)",
@@ -98,7 +105,31 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
                 transition: "border-color .2s",
                 opacity: entry.isVerifying ? 0.6 : 1,
               }}
-            />
+            >
+              <option value="custom">Custom API URL...</option>
+              {templates.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+
+            {(!entry.templateId || entry.templateId === "custom") && (
+              <input
+                id={`${uid}-value`}
+                type="url"
+                value={entry.value}
+                onChange={(e) => onUpdate(entry.id, { value: e.target.value, status: "idle", error: undefined })}
+                placeholder="API Base URL or Direct Spec URL"
+                className="input-glow font-mono-custom"
+                disabled={entry.isVerifying}
+                style={{
+                  width: "100%", padding: "12px 16px", borderRadius: 12,
+                  background: "rgba(0,0,0,.4)", border: "1px solid rgba(255,255,255,.08)",
+                  color: "rgba(255,255,255,.8)", fontSize: 13, fontFamily: "inherit",
+                  transition: "border-color .2s",
+                  opacity: entry.isVerifying ? 0.6 : 1,
+                }}
+              />
+            )}
           </div>
           <button
             onClick={() => onVerify(entry.id)}
@@ -116,54 +147,61 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
           </button>
         </div>
         {/* ── API Key (optional) ── */}
-        <div style={{ marginTop: 8 }}>
-          {!keyExpanded ? (
-            <button
-              id={`${uid}-add-key`}
-              onClick={() => setKeyExpanded(true)}
-              style={{
-                background: "transparent", border: "none", cursor: "pointer",
-                color: "rgba(255,255,255,.28)", fontSize: 12, fontFamily: "inherit",
-                display: "flex", alignItems: "center", gap: 5, padding: 0,
-                transition: "color .2s",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(165,180,252,.8)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.28)")}
-            >
-              <span style={{ fontSize: 14 }}>🔑</span> Add API key (optional)
-            </button>
-          ) : (
-            <div style={{ position: "relative", marginTop: 4 }}>
-              <input
-                id={`${uid}-apikey`}
-                type={showKey ? "text" : "password"}
-                value={entry.apiKey ?? ""}
-                onChange={(e) => onUpdate(entry.id, { apiKey: e.target.value })}
-                placeholder="Paste your API key…"
-                autoComplete="off"
-                className="input-glow font-mono-custom"
-                style={{
-                  width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10,
-                  background: "rgba(99,102,241,.07)", border: "1px solid rgba(99,102,241,.25)",
-                  color: "rgba(255,255,255,.75)", fontSize: 13, fontFamily: "monospace",
-                  transition: "border-color .2s",
-                }}
-              />
-              {/* toggle visibility */}
-              <button
-                onClick={() => setShowKey(v => !v)}
-                style={{
-                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                  background: "transparent", border: "none", cursor: "pointer",
-                  color: "rgba(255,255,255,.3)", fontSize: 14, lineHeight: 1, padding: 4,
-                }}
-                aria-label={showKey ? "Hide API key" : "Show API key"}
-              >
-                {showKey ? "🙈" : "👁"}
-              </button>
+        {(() => {
+          const t = templates.find(temp => temp.id === entry.templateId);
+          if (t && !t.requiresApiKey) return null; // hide completely if template doesn't require it
+
+          return (
+            <div style={{ marginTop: 8 }}>
+              {!keyExpanded ? (
+                <button
+                  id={`${uid}-add-key`}
+                  onClick={() => setKeyExpanded(true)}
+                  style={{
+                    background: "transparent", border: "none", cursor: "pointer",
+                    color: "rgba(255,255,255,.28)", fontSize: 12, fontFamily: "inherit",
+                    display: "flex", alignItems: "center", gap: 5, padding: 0,
+                    transition: "color .2s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "rgba(165,180,252,.8)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,.28)")}
+                >
+                  <span style={{ fontSize: 14 }}>🔑</span> Add API key (optional)
+                </button>
+              ) : (
+                <div style={{ position: "relative", marginTop: 4 }}>
+                  <input
+                    id={`${uid}-apikey`}
+                    type={showKey ? "text" : "password"}
+                    value={entry.apiKey ?? ""}
+                    onChange={(e) => onUpdate(entry.id, { apiKey: e.target.value })}
+                    placeholder="Paste your API key…"
+                    autoComplete="off"
+                    className="input-glow font-mono-custom"
+                    style={{
+                      width: "100%", padding: "10px 44px 10px 14px", borderRadius: 10,
+                      background: "rgba(99,102,241,.07)", border: "1px solid rgba(99,102,241,.25)",
+                      color: "rgba(255,255,255,.75)", fontSize: 13, fontFamily: "monospace",
+                      transition: "border-color .2s",
+                    }}
+                  />
+                  {/* toggle visibility */}
+                  <button
+                    onClick={() => setShowKey(v => !v)}
+                    style={{
+                      position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                      background: "transparent", border: "none", cursor: "pointer",
+                      color: "rgba(255,255,255,.3)", fontSize: 14, lineHeight: 1, padding: 4,
+                    }}
+                    aria-label={showKey ? "Hide API key" : "Show API key"}
+                  >
+                    {showKey ? "🙈" : "👁"}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
 
         {entry.error && (
           <p style={{ marginTop: 8, fontSize: 12, color: "#f87171", display: "flex", gap: 5, alignItems: "flex-start" }}>

@@ -28,6 +28,12 @@ const apis = [
   { name: "Google Books API", url: "https://www.googleapis.com/discovery/v1/apis/books/v1/rest", requiresApiKey: true },
   { name: "JSONPlaceholder API", url: "https://jsonplaceholder.typicode.com", requiresApiKey: false },
   { name: "Dog API", url: "https://dog.ceo/api/swagger.json", requiresApiKey: false },
+  { name: "PokéAPI", url: "https://pokeapi.co/api/v2/", requiresApiKey: false },
+  { name: "NASA APIs", url: "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY", requiresApiKey: true },
+  { name: "Twilio API", url: "https://raw.githubusercontent.com/twilio/twilio-oai/main/spec/json/twilio_api_v2010.json", requiresApiKey: true },
+  { name: "SendGrid API", url: "https://raw.githubusercontent.com/sendgrid/sendgrid-oai/main/oai.json", requiresApiKey: true },
+  { name: "Cloudflare API", url: "https://raw.githubusercontent.com/cloudflare/api-schemas/main/openapi.json", requiresApiKey: true },
+  { name: "Plaid API", url: "https://raw.githubusercontent.com/plaid/plaid-openapi/master/2020-09-14.yml", requiresApiKey: true },
 ]
 
 async function main() {
