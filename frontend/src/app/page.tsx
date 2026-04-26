@@ -6,15 +6,11 @@ import BuildProgress from "@/components/BuildProgress";
 import ResultPanel from "@/components/ResultPanel";
 import { ApiEntry, BuildStep, BuildResult } from "@/types";
 
-/* ── ID generation ── */
-let _counter = 0;
-function nextId() {
-  _counter += 1;
-  return `api-${_counter}`;
-}
-
 function createEntry(): ApiEntry {
-  return { id: nextId(), mode: "url", value: "", status: "idle" };
+  const id = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `api-${Math.random().toString(36).slice(2)}`;
+  return { id, mode: "url", value: "", status: "idle" };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

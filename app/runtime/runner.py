@@ -27,19 +27,19 @@ def print_instructions(server_path: Path, apis: list[dict], project_name: str) -
 
         if auth_type == "bearer":
             console.print(
-                f"[yellow]🔑  {title} Auth required[/] — set env var before running:\n"
+                f"[yellow]  {title} Auth required[/] — set env var before running:\n"
                 f"   [bold cyan]set {env_var_name}=<your-token>[/]  (Windows)\n"
                 f"   [bold cyan]export {env_var_name}=<your-token>[/]  (Linux/macOS)\n"
             )
         elif auth_type == "apiKey":
             console.print(
-                f"[yellow]🔑  {title} Auth required[/] — API key sent as header [bold]{api_key_hdr}[/]\n"
+                f"[yellow]  {title} Auth required[/] — API key sent as header [bold]{api_key_hdr}[/]\n"
                 f"   [bold cyan]set {env_var_name}=<your-key>[/]  (Windows)\n"
                 f"   [bold cyan]export {env_var_name}=<your-key>[/]  (Linux/macOS)\n"
             )
         elif auth_type == "basic":
             console.print(
-                f"[yellow]🔑  {title} Basic auth required[/]\n"
+                f"[yellow]  {title} Basic auth required[/]\n"
                 f"   [bold cyan]set {env_var_name}_USERNAME=...[/]\n"
                 f"   [bold cyan]set {env_var_name}_PASSWORD=...[/]\n"
             )

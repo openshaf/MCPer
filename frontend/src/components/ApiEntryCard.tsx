@@ -154,35 +154,51 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
             onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
             onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
           >
-            <span style={{ fontSize: 13 }}>🔑</span> Add API key
+            <span style={{ fontSize: 13 }}></span> Add API key
           </button>
         ) : (
-          <div style={{ position: "relative", flex: 1 }}>
-            <input
-              id={`${uid}-apikey`}
-              type={showKey ? "text" : "password"}
-              value={entry.apiKey ?? ""}
-              onChange={(e) => onUpdate(entry.id, { apiKey: e.target.value })}
-              placeholder="Paste your API key…"
-              autoComplete="off"
-              style={{
-                width: "100%", padding: "9px 40px 9px 12px", borderRadius: 7,
-                border: "1px solid var(--border-input)",
-                background: "#fafafa",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 12, color: "var(--text-primary)", outline: "none",
-              }}
-            />
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+            <div style={{ position: "relative", flex: 1 }}>
+              <input
+                id={`${uid}-apikey`}
+                type={showKey ? "text" : "password"}
+                value={entry.apiKey ?? ""}
+                onChange={(e) => onUpdate(entry.id, { apiKey: e.target.value })}
+                placeholder="Paste your API key…"
+                autoComplete="off"
+                style={{
+                  width: "100%", padding: "9px 40px 9px 12px", borderRadius: 7,
+                  border: "1px solid var(--border-input)",
+                  background: "#fafafa",
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 12, color: "var(--text-primary)", outline: "none",
+                }}
+              />
+              <button
+                onClick={() => setShowKey(v => !v)}
+                style={{
+                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                  background: "transparent", border: "none", cursor: "pointer",
+                  color: "var(--text-muted)", fontSize: 13, lineHeight: 1, padding: 4,
+                }}
+                aria-label={showKey ? "Hide API key" : "Show API key"}
+              >
+                {showKey ? "🙈" : "👁"}
+              </button>
+            </div>
+            {/* Cancel / close key field */}
             <button
-              onClick={() => setShowKey(v => !v)}
+              onClick={() => { setKeyExpanded(false); onUpdate(entry.id, { apiKey: undefined }); }}
+              aria-label="Remove API key"
               style={{
-                position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                background: "transparent", border: "none", cursor: "pointer",
-                color: "var(--text-muted)", fontSize: 13, lineHeight: 1, padding: 4,
+                flexShrink: 0, background: "transparent", border: "none", cursor: "pointer",
+                color: "var(--text-muted)", fontSize: 14, padding: "4px 6px", borderRadius: 5,
+                transition: "color .15s",
               }}
-              aria-label={showKey ? "Hide API key" : "Show API key"}
+              onMouseEnter={e => (e.currentTarget.style.color = "#dc2626")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
             >
-              {showKey ? "🙈" : "👁"}
+              ✕
             </button>
           </div>
         )}
