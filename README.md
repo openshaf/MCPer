@@ -1,250 +1,206 @@
-# 🚀 Custom MCP Builder
+# MCPer
 
-A developer-first tool that converts **OpenAPI / Swagger APIs** into fully functional **MCP (Model Context Protocol) servers**, ready to run locally using **FastMCP**.
-
----
-
-## 📌 Overview
-
-Custom MCP Builder bridges the gap between traditional APIs and AI agents.
-
-Instead of manually writing MCP servers, this tool:
-
-- Understands your API from OpenAPI specs
-- Automatically generates MCP-compatible tools, resources, and prompts
-- Spins up a local MCP server on `localhost`
-
-This allows AI agents to **interact with any API instantly**.
+**MCPer** is a developer tool that converts OpenAPI 3.x specifications into fully functional [FastMCP](https://github.com/jlowin/fastmcp) servers. Point it at any API, and it generates a ready-to-run Python MCP server exposing every endpoint as a native tool — no boilerplate required.
 
 ---
 
-## ⚡ Key Features
+## Overview
 
-- 📥 **Multi-format Input**
-  - Upload `openapi.json` / `.yaml`
-  - Paste raw spec
-  - Provide Swagger/OpenAPI URL
+MCPer bridges traditional REST APIs and AI agent frameworks. Instead of manually authoring MCP server code, MCPer:
 
-- 🧠 **Smart API Understanding**
-  - Extracts endpoints, parameters, and schemas
-  - Detects authentication types (API Key, Bearer, etc.)
-  - Filters useful vs noisy endpoints
-
-- 🛠 **Automatic MCP Generation**
-  - Converts endpoints into MCP tools
-  - Generates resources for documentation
-  - Adds prompts for guided usage
-
-- 🖥 **Local MCP Server**
-  - Runs on `localhost`
-  - Supports `stdio` and HTTP transport
-  - Works with MCP-compatible clients
-
-- 🔒 **Safe by Default**
-  - Write/delete endpoints require explicit enablement
-  - Secrets handled via environment variables
+- Ingests an OpenAPI spec from a URL, a local file, or via auto-discovery from a base API URL
+- Parses all endpoints, parameters, request bodies, and authentication schemes
+- Renders a complete, type-annotated FastMCP server using Jinja2 templates
+- Outputs a server that is immediately mountable in Claude Desktop, Codex CLI, or the MCP Inspector
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```
-User Input (OpenAPI)
-        ↓
-Spec Ingestion Layer
-        ↓
-API Analysis Engine
-        ↓
-MCP Code Generator (FastMCP)
-        ↓
-Local MCP Server (localhost)
+User Input (URL / file)
+        |
+        v
+  Ingestion Layer          app/ingest/loader.py
+        |
+        v
+  Analysis Engine          app/analyze/parser.py
+        |
+        v
+  Code Generator           app/generate/codegen.py + templates/
+        |
+        v
+  Generated MCP Server     generated/<name>/server.py
+```
+
+### Frontend (Next.js)
+
+A web interface is included under `frontend/`. It communicates with a local FastAPI backend (`api.py`) running on port 8000 via a Next.js API proxy route.
+
+```
+Browser
+  |
+  v
+Next.js (port 3000)  --  /api/build proxy  -->  FastAPI (port 8000)  -->  main.py CLI
 ```
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
-custom-mcp-builder/
-│
+MCPer/
 ├── app/
-│   ├── ingest/        # OpenAPI parsing & validation
-│   ├── analyze/       # Endpoint classification & scoring
-│   ├── generate/      # MCP code generation
-│   ├── runtime/       # Server execution
-│   └── ui/            # Optional frontend
-│
-├── templates/         # Code templates (Jinja2)
-├── generated/         # Output MCP servers
-├── examples/          # Sample APIs
-├── tests/             # Unit tests
-└── README.md
+│   ├── ingest/         # Spec loading: URL, file, auto-discovery
+│   ├── analyze/        # OpenAPI parsing, endpoint extraction, auth detection
+│   ├── generate/       # FastMCP code generation via Jinja2
+│   └── runtime/        # CLI output formatting and run instructions
+├── templates/
+│   ├── server.py.j2    # Main server scaffold
+│   └── tool.py.j2      # Per-endpoint tool function
+├── frontend/           # Next.js + Tailwind + TypeScript web interface
+├── generated/          # Output directory for generated MCP servers
+├── main.py             # CLI entry point
+├── api.py              # FastAPI backend (for the web interface)
+└── pyproject.toml
 ```
 
 ---
 
-## 🚀 Getting Started
+## Requirements
 
-### 1. Clone the Repository
+- Python 3.12+
+- [uv](https://github.com/astral-sh/uv) (package and environment manager)
+- Node.js 18+ (for the web frontend)
+
+---
+
+## Getting Started
+
+### Clone the repository
 
 ```bash
-git clone https://github.com/your-username/custom-mcp-builder.git
-cd custom-mcp-builder
+git clone https://github.com/openshaf/MCPer.git
+cd MCPer
 ```
 
-### 2. Install Dependencies
+### Install Python dependencies
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
-### 3. Run the Builder
+### Run via CLI
 
 ```bash
-python main.py
+# Auto-discover the spec from a base API URL (recommended)
+uv run main.py --api https://petstore3.swagger.io/api/v3
+
+# Point directly at a spec file URL
+uv run main.py --url https://petstore3.swagger.io/api/v3/openapi.json
+
+# Use a local spec file
+uv run main.py --file ./openapi.json
+```
+
+The generated server will be written to `generated/<api-name>/server.py`.
+
+### Run the generated server
+
+```bash
+uv run generated/<api-name>/server.py
 ```
 
 ---
 
-## 🧪 Usage
+## Web Interface
 
-### Input Options
+The frontend provides a visual way to submit API URLs and retrieve the generated server configuration.
 
-- Upload a file:
-
-```bash
---file openapi.json
-```
-
-- Use a URL:
+### Start the FastAPI backend
 
 ```bash
---url https://api.example.com/openapi.json
+uv run api.py
 ```
 
-- Paste raw spec (CLI prompt)
+### Start the Next.js frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-### Generate MCP Server
+## Connecting to an MCP Client
 
-```bash
-python main.py --file openapi.json
-```
+### Claude Desktop
 
-Output:
-
-```
-generated/
-  my_api_mcp/
-    server.py
-```
-
----
-
-### Run MCP Server
-
-```bash
-cd generated/my_api_mcp
-python server.py
-```
-
-Server runs on:
-
-```
-http://localhost:8000
-```
-
----
-
-## 🔧 Example
-
-### Input (OpenAPI Endpoint)
+Add the following to your `claude_desktop_config.json`:
 
 ```json
-GET /users
+{
+  "mcpServers": {
+    "my-api": {
+      "command": "uv",
+      "args": [
+        "run",
+        "-q",
+        "--directory",
+        "/absolute/path/to/generated/my-api",
+        "/absolute/path/to/generated/my-api/server.py"
+      ]
+    }
+  }
+}
 ```
 
-### Generated MCP Tool
+### Codex CLI
 
-```python
-@mcp.tool()
-def get_users():
-    """Fetch list of users"""
-    return requests.get(BASE_URL + "/users").json()
+```bash
+codex mcp add my-api -- uv run -q --directory "/path/to/generated/my-api" "/path/to/generated/my-api/server.py"
+```
+
+### MCP Inspector
+
+```bash
+npx @modelcontextprotocol/inspector uv run -q --directory "/path/to/generated/my-api" "server.py"
 ```
 
 ---
 
-## 🧠 How It Works
+## Features
 
-1. **Parse OpenAPI Spec**
-   - Extract paths, methods, schemas
-
-2. **Analyze API**
-   - Identify useful endpoints
-   - Group by functionality
-
-3. **Generate MCP Components**
-   - Tools → API actions
-   - Resources → documentation
-   - Prompts → usage guidance
-
-4. **Run Server**
-   - Hosted locally via FastMCP
+| Feature | Details |
+|---|---|
+| Auto-discovery | Probes common spec paths (`/openapi.json`, `/swagger.json`, etc.) from a base URL |
+| Auth detection | Detects Bearer, API Key, and Basic auth; maps credentials to environment variables |
+| Redirect handling | Generated `httpx` calls include `follow_redirects=True` |
+| Type-annotated output | All tool functions are fully typed and compatible with FastMCP |
+| Relative server URLs | Constructs absolute URLs from specs that use relative paths in the `servers` array |
 
 ---
 
-## 🔐 Security Considerations
+## Known Limitations
 
-- Localhost-only by default
-- Secrets stored in `.env`
-- Optional filtering of sensitive endpoints
-- HTTP mode includes origin validation
-
----
-
-## 🧩 Future Improvements
-
-- OAuth2 automation
-- GraphQL support
-- Cloud-hosted MCP registry
-- UI dashboard for endpoint selection
-- Multi-API composition into a single MCP server
+- **Single API per server**: Each generated server corresponds to one API. Multi-API composition into a single server is planned but not yet implemented.
+- **OpenAPI 3.x only**: Swagger 2.0 (OpenAPI 2) is not supported.
+- **REST only**: GraphQL, gRPC, and other protocols are out of scope.
 
 ---
 
-## 🎯 MVP Scope
+## Contributing
 
-- OpenAPI 3.x support
-- REST APIs only
-- Local server generation
-- Manual endpoint selection
-- Basic authentication support
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-
-1. Fork the repo
-2. Create a feature branch
-3. Submit a PR
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes
+4. Open a pull request
 
 ---
 
-## 📄 License
+## License
 
-MIT License
-
----
-
-## 💡 Vision
-
-In a world of AI agents, **tools define capability**.
-
-Custom MCP Builder makes every API instantly usable by AI —
-no manual wiring, no boilerplate, just plug and play.
-
----
+MIT
