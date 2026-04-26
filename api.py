@@ -26,7 +26,7 @@ from pydantic import BaseModel
 # Load MCPer's own .env (Supabase credentials etc.) before anything else
 load_dotenv()
 
-from app.database import get_user_from_token, sign_in, sign_up, save_build, get_user_builds
+from app.database import get_user_from_token, sign_in, sign_up, save_build, get_user_builds, get_predefined_apis
 from app.ingest.loader import load_spec
 from app.analyze.parser import parse_spec
 from app.generate.codegen import generate
@@ -152,6 +152,7 @@ def verify_api(api_input: ApiInput):
             api=api_input.value.strip() if api_input.mode == "api" else None,
             url=api_input.value.strip() if api_input.mode == "url" else None,
             raw=api_input.value if api_input.mode == "file" else None,
+            auto=api_input.value.strip() if api_input.mode == "auto" else None,
         )
         api_meta, tools = parse_spec(spec, source)
         if not tools:
@@ -186,6 +187,7 @@ def build_mcp_server(req: BuildRequest, request: Request):
                 api=api_input.value.strip() if api_input.mode == "api" else None,
                 url=api_input.value.strip() if api_input.mode == "url" else None,
                 raw=api_input.value if api_input.mode == "file" else None,
+                auto=api_input.value.strip() if api_input.mode == "auto" else None,
             )
             loaded_specs.append((spec, source))
         except Exception as e:
@@ -292,3 +294,13 @@ def list_builds(request: Request):
     user = _require_user(request)
     builds = get_user_builds(user["id"])
     return {"builds": builds, "user": user}
+
+
+# ---------------------------------------------------------------------------
+# Predefined APIs
+# ---------------------------------------------------------------------------
+
+@app.get("/predefined_apis")
+def list_predefined_apis():
+    apis = get_predefined_apis()
+    return {"apis": apis}

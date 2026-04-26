@@ -1,7 +1,10 @@
 "use client";
 
-import { useId } from "react";
-import { ApiEntry } from "@/types";
+import { useId, useState, useEffect } from "react";
+import { ApiEntry, PredefinedApi } from "@/types";
+
+let cachedPredefinedApis: PredefinedApi[] | null = null;
+let fetchPromise: Promise<PredefinedApi[]> | null = null;
 
 interface Props {
   entry: ApiEntry;
@@ -14,6 +17,25 @@ interface Props {
 
 export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerify, canRemove }: Props) {
   const uid = useId();
+  const [predefinedApis, setPredefinedApis] = useState<PredefinedApi[]>(cachedPredefinedApis || []);
+
+  useEffect(() => {
+    if (cachedPredefinedApis) return;
+    if (!fetchPromise) {
+      fetchPromise = fetch("/api/predefined_apis")
+        .then(res => res.json())
+        .then(data => {
+          const apis = data.apis || [];
+          cachedPredefinedApis = apis;
+          return apis;
+        })
+        .catch(err => {
+          console.error("Failed to fetch predefined APIs:", err);
+          return [];
+        });
+    }
+    fetchPromise.then(apis => setPredefinedApis(apis));
+  }, []);
 
   const borderColor =
     entry.status === "success" ? "rgba(16,185,129,0.35)" :
@@ -82,13 +104,43 @@ export default function ApiEntryCard({ entry, index, onUpdate, onRemove, onVerif
 
       {/* ── Input area ── */}
       <div style={{ padding: "10px 20px 20px" }}>
+        {predefinedApis.length > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            <select
+              value={predefinedApis.find(a => a.url === entry.value)?.id || "custom"}
+              onChange={(e) => {
+                if (e.target.value === "custom") {
+                  onUpdate(entry.id, { value: "", name: "", status: "idle", error: undefined, mode: "auto" });
+                } else {
+                  const api = predefinedApis.find(a => a.id === e.target.value);
+                  if (api) {
+                    onUpdate(entry.id, { value: api.url, name: api.name, status: "idle", error: undefined, mode: "url" });
+                  }
+                }
+              }}
+              disabled={entry.isVerifying}
+              style={{
+                width: "100%", padding: "10px 14px", borderRadius: 10,
+                background: "rgba(0,0,0,.4)", border: "1px solid rgba(255,255,255,.08)",
+                color: "rgba(255,255,255,.8)", fontSize: 13, fontFamily: "inherit",
+                outline: "none", cursor: entry.isVerifying ? "not-allowed" : "pointer",
+              }}
+            >
+              <option value="custom">Custom API URL...</option>
+              {predefinedApis.map(api => (
+                <option key={api.id} value={api.id}>{api.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div style={{ position: "relative", display: "flex", gap: 10 }}>
           <div style={{ position: "relative", flex: 1 }}>
             <input
               id={`${uid}-value`}
               type="url"
               value={entry.value}
-              onChange={(e) => onUpdate(entry.id, { value: e.target.value, status: "idle", error: undefined })}
+              onChange={(e) => onUpdate(entry.id, { value: e.target.value, status: "idle", error: undefined, mode: "auto" })}
               placeholder="API Base URL or Direct Spec URL"
               className="input-glow font-mono-custom"
               disabled={entry.isVerifying}

@@ -172,3 +172,23 @@ def _deserialise_build(row: dict) -> dict:
         except (json.JSONDecodeError, TypeError):
             row["api_names"] = []
     return row
+
+
+# ---------------------------------------------------------------------------
+# Predefined APIs
+# ---------------------------------------------------------------------------
+
+def get_predefined_apis() -> list[dict]:
+    """Fetch all predefined APIs from the database."""
+    sb = get_supabase()
+    try:
+        res = (
+            sb.table("mcper_predefined_apis")
+            .select("id, name, url, requires_api_key")
+            .order("name", desc=False)
+            .execute()
+        )
+        return res.data or []
+    except Exception:
+        # If the table doesn't exist yet, return empty list or fallback
+        return []

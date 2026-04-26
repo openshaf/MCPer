@@ -1,6 +1,6 @@
 // Types used across the MCPer frontend
 
-export type InputMode = "url";
+export type InputMode = "url" | "api" | "file" | "auto";
 
 export interface ApiEntry {
   id: string;
@@ -47,4 +47,11 @@ export interface BuildRecord {
   env_template: string;
   server_slug: string;
   created_at: string;
+}
+
+export interface PredefinedApi {
+  id: string;
+  name: string;
+  url: string;
+  requires_api_key: boolean;
 }

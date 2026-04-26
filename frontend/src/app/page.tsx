@@ -15,7 +15,7 @@ function nextId() {
 }
 
 function createEntry(): ApiEntry {
-  return { id: nextId(), mode: "url", value: "", status: "idle" };
+  return { id: nextId(), mode: "auto", value: "", status: "idle" };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

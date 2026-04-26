@@ -58,19 +58,10 @@ def _parse_content(content: str, source: str = "") -> dict:
 
 
 def _validate(spec: dict) -> None:
-    """Ensure this is an OpenAPI 3.x document."""
-    if "openapi" not in spec:
-        if "swagger" in spec:
-            raise ValueError(
-                "Swagger 2.x specs are not supported. "
-                "Please convert to OpenAPI 3.x (https://converter.swagger.io)."
-            )
-        raise ValueError("Not a valid OpenAPI spec: missing 'openapi' field.")
-    version = str(spec["openapi"])
-    if not version.startswith("3."):
-        raise ValueError(
-            f"Unsupported OpenAPI version {version!r}. Only 3.x is supported."
-        )
+    """Ensure this is a somewhat valid OpenAPI/Swagger document."""
+    if "openapi" not in spec and "swagger" not in spec:
+        raise ValueError("Not a valid OpenAPI/Swagger spec: missing 'openapi' or 'swagger' field.")
+
 
 
 # ---------------------------------------------------------------------------
@@ -162,23 +153,29 @@ def load_spec(
     url: str | None = None,
     file: str | None = None,
     raw: str | None = None,
+    auto: str | None = None,
 ) -> tuple[dict, str]:
     """
     Load and validate an OpenAPI 3.x spec from any source.
     Returns (spec_dict, source_description).
     """
-    link = api or url
-    if link:
-        # Strip query params to check the extension properly
-        lower_link = link.split("?")[0].lower()
+    if auto:
+        # Smart detection for unknown inputs
+        lower_link = auto.split("?")[0].lower()
         if lower_link.endswith((".json", ".yaml", ".yml")):
-            return load_from_url(link), link
+            return load_from_url(auto), auto
         else:
-            spec, discovered = load_from_api(link)
+            spec, discovered = load_from_api(auto)
             return spec, discovered
 
+    if api:
+        spec, discovered = load_from_api(api)
+        return spec, discovered
+    if url:
+        return load_from_url(url), url
     if file:
         return load_from_file(file), file
     if raw:
         return load_from_raw(raw), "<raw string>"
-    raise ValueError("Provide one of: --api, --url, --file, or --raw")
+    
+    raise ValueError("Provide one of: --api, --url, --file, --raw, or --auto")
