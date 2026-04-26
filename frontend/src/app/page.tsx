@@ -196,48 +196,39 @@ export default function HomePage() {
       </button>
 
       {/* ── Hero ── */}
-      <section style={{
-        textAlign: "center", padding: "64px 24px 48px",
-        maxWidth: 900, margin: "0 auto",
-        opacity: submitted ? 0 : 1,
-        transform: submitted ? "translateY(-60px)" : "translateY(0)",
-        transition: "opacity 0.85s cubic-bezier(0.4,0,0.2,1), transform 0.85s cubic-bezier(0.4,0,0.2,1)",
-        pointerEvents: submitted ? "none" : "auto",
-      }}>
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 24,
-          padding: "5px 14px", borderRadius: 999,
-          background: "rgba(255,107,26,.08)", border: "1px solid rgba(255,107,26,.2)",
-          fontSize: 11, fontWeight: 700, color: "var(--accent)",
-          letterSpacing: ".06em", textTransform: "uppercase",
-          fontFamily: "'Instrument Sans', sans-serif",
-        }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", animation: "pulse 2s ease-in-out infinite" }} />
-          OpenAPI → FastMCP in seconds
-        </div>
-
-        <div style={{ position: "relative", display: "inline-block", marginBottom: 20 }}>
-          <span className="badge-accent" style={{ position: "absolute", top: "-5px", left: "-8px", transform: "rotate(-8deg)", zIndex: 2, fontFamily: "'Special Elite', cursive", fontSize: 22, letterSpacing: "2px" }}>
-            toolRelay
-          </span>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(3rem, 8vw, 5.5rem)", fontWeight: 400, lineHeight: 1.15, letterSpacing: "-0.01em", color: "var(--text-primary)", margin: 0 }}>
-            What are you <em style={{ fontStyle: "italic" }}>building?</em>
-          </h1>
-        </div>
-
-        <p style={{
-          fontSize: "clamp(1rem, 2.5vw, 1.15rem)", color: "var(--text-secondary)",
-          maxWidth: 560, margin: "0 auto", lineHeight: 1.7,
-          fontFamily: "'Instrument Sans', sans-serif",
+      {!result && (
+        <section style={{
+          textAlign: "center", padding: "64px 24px 24px",
+          maxWidth: 900, margin: "0 auto",
           opacity: submitted ? 0 : 1,
-          transform: submitted ? "translateY(-48px)" : "translateY(0)",
-          transition: "opacity 0.85s cubic-bezier(0.4,0,0.2,1) 0.12s, transform 0.85s cubic-bezier(0.4,0,0.2,1) 0.12s",
+          transform: submitted ? "translateY(-60px)" : "translateY(0)",
+          transition: "opacity 0.85s cubic-bezier(0.4,0,0.2,1), transform 0.85s cubic-bezier(0.4,0,0.2,1)",
+          pointerEvents: submitted ? "none" : "auto",
         }}>
-          Paste your API URLs — MCPer auto-discovers the OpenAPI spec, extracts every endpoint, and generates a plug-and-play{" "}
-          <em style={{ fontStyle: "italic", color: "var(--text-primary)" }}>FastMCP server</em>{" "}
-          ready for Claude, Codex, or any MCP-compatible agent.
-        </p>
-      </section>
+
+          <div style={{ position: "relative", display: "inline-block", marginBottom: 20 }}>
+            <span className="badge-accent" style={{ position: "absolute", top: "-5px", left: "-8px", transform: "rotate(-8deg)", zIndex: 2, fontFamily: "'Special Elite', cursive", fontSize: 22, letterSpacing: "2px" }}>
+              toolRelay
+            </span>
+            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(3rem, 8vw, 5.5rem)", fontWeight: 400, lineHeight: 1.15, letterSpacing: "-0.01em", color: "var(--text-primary)", margin: 0 }}>
+              What are you <em style={{ fontStyle: "italic" }}>building?</em>
+            </h1>
+          </div>
+
+          <p style={{
+            fontSize: "clamp(1rem, 2.5vw, 1.15rem)", color: "var(--text-secondary)",
+            maxWidth: 560, margin: "0 auto", lineHeight: 1.7,
+            fontFamily: "'Instrument Sans', sans-serif",
+            opacity: submitted ? 0 : 1,
+            transform: submitted ? "translateY(-48px)" : "translateY(0)",
+            transition: "opacity 0.85s cubic-bezier(0.4,0,0.2,1) 0.12s, transform 0.85s cubic-bezier(0.4,0,0.2,1) 0.12s",
+          }}>
+            Paste your API URLs — MCPer auto-discovers the OpenAPI spec, extracts every endpoint, and generates a plug-and-play{" "}
+            <em style={{ fontStyle: "italic", color: "var(--text-primary)" }}>FastMCP server</em>{" "}
+            ready for Claude, Codex, or any MCP-compatible agent.
+          </p>
+        </section>
+      )}
 
       {/* ── Result panel (always visible after build) ── */}
       {result && (
@@ -349,25 +340,8 @@ export default function HomePage() {
       </section>
       )}
 
-      {/* ── Features grid ── */}
-      <section style={{ padding: "0 32px 80px", maxWidth: 1100, margin: "0 auto", width: "100%" }}>
-        <h2 style={{ textAlign: "center", fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 400, color: "var(--text-primary)", marginBottom: 8 }}>
-          Everything you need
-        </h2>
-        <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-muted)", marginBottom: 40, fontFamily: "'Instrument Sans', sans-serif" }}>
-          MCPer handles the entire pipeline from spec to running server
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14 }}>
-          <FeatureCard icon="🔍" title="Auto-discovery"     badge="Smart"     badgeVariant="accent"  description="Just paste the API base URL — MCPer probes common paths to find the OpenAPI spec automatically." />
-          <FeatureCard icon="📥" title="Smart Input Routing"                                         description="Simply paste any link. MCPer instantly detects whether it's a direct spec URL or requires auto-discovery." />
-          <FeatureCard icon="🔒" title="Auth Detection"     badge="Secure"    badgeVariant="success" description="Automatically detects Bearer, API Key, and Basic auth schemes, mapping them to environment variables." />
-          <FeatureCard icon="⚡" title="FastMCP Generation"                                          description="Generates fully type-annotated @mcp.tool() functions using Jinja2 templates and FastMCP." />
-          <FeatureCard icon="🔄" title="Redirect Handling"  badge="Robust"    badgeVariant="warning" description="Injects follow_redirects=True so tools transparently handle HTTP 301/302 redirects." />
-          <FeatureCard icon="🤖" title="Agent Ready"        badge="Multi-API" badgeVariant="neutral" description="Generated servers plug directly into Claude Desktop, Codex CLI, or the MCP Inspector." />
-        </div>
-      </section>
 
-      {/* ── How it works ── */}
+      {/* ── How it works ── (commented out)
       <section style={{ padding: "0 32px 100px", maxWidth: 760, margin: "0 auto", width: "100%" }}>
         <h2 style={{ textAlign: "center", fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 400, color: "var(--text-primary)", marginBottom: 40 }}>
           How it works
@@ -392,7 +366,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
       <footer style={{ borderTop: "1px solid var(--border)", padding: "24px 40px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <span style={{ fontFamily: "'Special Elite', cursive", fontSize: 15, letterSpacing: "1.5px", color: "#fff", background: "var(--accent)", padding: "3px 10px", borderRadius: 4, display: "inline-block", transform: "rotate(-1deg)" }}>
@@ -408,6 +381,7 @@ export default function HomePage() {
           >View on GitHub →</a>
         </div>
       </footer>
+      */}
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
